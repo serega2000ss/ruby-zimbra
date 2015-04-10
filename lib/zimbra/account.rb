@@ -40,6 +40,17 @@ module Zimbra
     def delegated_admin?
       @delegated_admin
     end
+    
+    def get_attributes(attributes = [])
+      return {} if attributes.empty?
+      attr_hash = Hash.new
+      raw = true
+      raw_data = AccountService.get_by_id(id, raw)
+      attributes.each do |attr|
+        attr_hash[attr] = Zimbra::A.read raw_data, attr
+      end
+      attr_hash
+    end
 
     def save
       AccountService.modify(self)
@@ -63,11 +74,12 @@ module Zimbra
       Parser.account_response(xml/"//n2:account")
     end
 
-    def get_by_id(id)
+    def get_by_id(id, raw = false)
       xml = invoke("n2:GetAccountRequest") do |message|
         Builder.get_by_id(message, id)
       end
       return nil if soap_fault_not_found?
+      return xml if raw
       Parser.account_response(xml/"//n2:account")
     end
 
