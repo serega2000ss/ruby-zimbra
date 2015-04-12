@@ -71,7 +71,7 @@ module Zimbra
 
     # re-log into the zimbra SOAP service
     def reset_login(username, password)
-      [@@auth_token, @@session_lifetime] = Auth.login(username, password)
+      @@auth_token, @@session_lifetime = Auth.login(username, password)
     end
     
     def account_login(username)
