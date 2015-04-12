@@ -21,7 +21,7 @@ module Zimbra
       xml = invoke('n2:AuthRequest') do |message|
         Builder.auth(message, username, password)
       end
-      Parser.auth_token(xml)
+      [Parser.auth_token(xml), Parser.session_lifetime(xml)]
     end
 
     class Builder
@@ -36,6 +36,9 @@ module Zimbra
       class << self
         def auth_token(response)
           (response/'//n2:authToken').to_s
+        end
+        def session_lifetime(response)
+          (response/'//n2:lifetime').to_s
         end
       end
     end
