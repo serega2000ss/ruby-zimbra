@@ -15,15 +15,15 @@ module Zimbra
 
       def create(options)
         account = new(options)
-        AccountService.create(account) 
+        AccountService.create(account)
       end
 
       def acl_name
-        'account'
+        'usr'
       end
     end
 
-    attr_accessor :id, :name, :password, :acls, :cos_id, :delegated_admin
+    attr_accessor :id, :name, :password, :acls, :cos_id, :delegated_admin, :attributes
 
     def initialize(options = {})
       self.id = options[:id]
@@ -32,10 +32,11 @@ module Zimbra
       self.acls = options[:acls] || []
       self.cos_id = (options[:cos] ? options[:cos].id : options[:cos_id])
       self.delegated_admin = options[:delegated_admin]
+      self.attributes = options[:attributes] || []
     end
 
     def delegated_admin=(val)
-      @delegated_admin = Zimbra::Boolean.read(val) 
+      @delegated_admin = Zimbra::Boolean.read(val)
     end
     def delegated_admin?
       @delegated_admin
@@ -58,6 +59,10 @@ module Zimbra
 
     def delete
       AccountService.delete(self)
+    end
+
+    def add_alias(alias_name)
+      AccountService.add_alias(self,alias_name)
     end
   end
 
@@ -96,11 +101,17 @@ module Zimbra
         Builder.modify(message, account)
       end
       Parser.account_response(xml/'//n2:account')
-    end 
+    end
 
     def delete(dist)
       xml = invoke("n2:DeleteAccountRequest") do |message|
         Builder.delete(message, dist.id)
+      end
+    end
+
+    def add_alias(account,alias_name)
+      xml = invoke('n2:AddAccountAliasRequest') do |message|
+        Builder.add_alias(message,account.id,alias_name)
       end
     end
 
@@ -110,8 +121,11 @@ module Zimbra
           message.add 'name', account.name
           message.add 'password', account.password
           A.inject(message, 'zimbraCOSId', account.cos_id)
+          account.attributes.each do |k,v|
+            A.inject(message, k, v)
+          end
         end
-        
+
         def get_by_id(message, id)
           message.add 'account', id do |c|
             c.set_attr 'by', 'id'
@@ -142,6 +156,11 @@ module Zimbra
 
         def delete(message, id)
           message.add 'id', id
+        end
+
+        def add_alias(message,id,alias_name)
+          message.add 'id', id
+          message.add 'alias', alias_name
         end
       end
     end
