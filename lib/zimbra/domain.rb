@@ -63,11 +63,12 @@ module Zimbra
       Parser.domain_response(xml/"//n2:domain")
     end
 
-    def get_by_id(id)
+    def get_by_id(id, raw = false)
       xml = invoke("n2:GetDomainRequest") do |message|
         Builder.get_by_id(message, id)
       end
       return nil if soap_fault_not_found?
+      return xml if raw
       Parser.domain_response(xml/"//n2:domain")
     end
 
