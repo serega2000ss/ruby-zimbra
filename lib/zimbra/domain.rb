@@ -12,17 +12,6 @@ module Zimbra
       def find_by_name(name)
         DomainService.get_by_name(name)
       end
-      
-      def get_attributes(attributes = [])
-        return {} if attributes.empty?
-        attr_hash = Hash.new
-        raw = true
-        raw_data = DomainService.get_by_id(id, raw)
-        attributes.each do |attr|
-          attr_hash[attr] = Zimbra::A.read raw_data, attr
-        end
-        attr_hash
-      end
 
       def create(name, attributes = {})
         DomainService.create(name, attributes)
@@ -40,7 +29,18 @@ module Zimbra
       self.name = name
       self.acls = acls || []
     end
-
+    
+    def get_attributes(attributes = [])
+      return {} if attributes.empty?
+      attr_hash = Hash.new
+      raw = true
+      raw_data = DomainService.get_by_id(id, raw)
+      attributes.each do |attr|
+        attr_hash[attr] = Zimbra::A.read raw_data, attr
+      end
+      attr_hash
+    end
+    
     def save
       DomainService.modify(self)
     end
