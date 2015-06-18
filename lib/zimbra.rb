@@ -49,6 +49,11 @@ module Zimbra
       @@debug ||= false
     end
 
+    # Checking if we can update the token
+    def auth_token=(token)
+      @@auth_token = token
+    end
+
     # Authorization token - obtained after successful login
     def auth_token
       @@auth_token
