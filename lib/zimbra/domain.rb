@@ -41,6 +41,10 @@ module Zimbra
       attr_hash
     end
     
+    def count_accounts
+      DomainService.count_accounts(id)
+    end
+    
     def save
       DomainService.modify(self)
     end
@@ -61,6 +65,13 @@ module Zimbra
         Builder.create(message, name, attributes)
       end
       Parser.domain_response(xml/"//n2:domain")
+    end
+    
+    def count_accounts(id)
+      xml = invoke("n2:CountAccountRequest") do |message|
+        Builder.count_accounts(message, id)
+      end
+      Parser.count_accounts_response(xml)
     end
 
     def get_by_id(id, raw = false)
@@ -99,6 +110,12 @@ module Zimbra
           message.add 'name', name
           attributes.each do |k,v|
             A.inject(message, k, v)
+          end
+        end
+        
+        def count_accounts(message, id)
+          message.add 'domain', id do |c|
+            c.set_attr 'by', 'id'
           end
         end
 
@@ -147,6 +164,16 @@ module Zimbra
           acls = Zimbra::ACL.read(node)
           Zimbra::Domain.new(id, name, acls)
         end
+        
+        def count_accounts_response(response)
+          hash = {}
+          (response/"//n2:cos").map do |node|
+            cos_id = (node/'@id').to_s
+            hash[cos_id] = node.to_s.to_i
+          end
+          hash
+        end
+        
       end
     end
   end
