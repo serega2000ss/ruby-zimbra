@@ -91,9 +91,9 @@ module Zimbra
       Parser.domain_response(xml/"//n2:domain")
     end
 
-    def modify(domain)
+    def modify(domain, attributes = {})
       xml = invoke("n2:ModifyDomainRequest") do |message|
-        Builder.modify(message, domain)
+        Builder.modify(message, domain, attributes)
       end
       Parser.domain_response(xml/'//n2:domain')
     end
@@ -131,17 +131,14 @@ module Zimbra
           end
         end
 
-        def modify(message, domain)
+        def modify(message, domain, attributes = {})
           message.add 'id', domain.id
-          modify_attributes(message, domain)
+          modify_attributes(message, attributes)
         end
-        def modify_attributes(message, domain)
-          if domain.acls.empty?
-            ACL.delete_all(message)
-          else
-            domain.acls.each do |acl|
-              acl.apply(message)
-            end
+        
+        def modify_attributes(message, attributes = {})
+          attributes.each do |k,v|
+            A.inject(message, k, v)
           end
         end
 
