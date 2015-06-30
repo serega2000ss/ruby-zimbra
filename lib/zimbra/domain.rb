@@ -45,6 +45,10 @@ module Zimbra
       DomainService.count_accounts(id)
     end
     
+    def update_attributes(attributes = {})
+      DomainService.modify(self, attributes)
+    end
+    
     def save
       DomainService.modify(self)
     end
