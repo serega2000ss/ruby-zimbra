@@ -210,12 +210,22 @@ module Zimbra
           name = (node/'@name').to_s
           ui_components = A.read(node, 'zimbraAdminConsoleUIComponents')
           admin_group = A.read(node, 'zimbraIsAdminGroup')
-          members = (node/"//n2:dlm").map { |n| n.to_s }
+          members = get_members(node)
 
           Zimbra::DistributionList.new(:id => id, :name => name,
             :admin_console_ui_components => ui_components, :admin_group => admin_group,
             :members => members)
         end
+        
+        def get_members(node)
+          # Return this if we are getting here by find_by_*
+          return (node/"//n2:dlm").map { |n| n.to_s } if (node/"//n2:dlm").any?
+          
+          # Return this if we get here by DirectorySearch
+          fwds = A.read(node, 'zimbraMailForwardingAddress')
+          fwds.is_a?(Array) ? fwds.map { |n| n.to_s } : [fwds]
+        end
+        
       end
     end
   end

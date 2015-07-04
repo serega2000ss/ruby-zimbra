@@ -12,6 +12,8 @@ require 'zimbra/delegate_auth_token'
 require 'zimbra/folder'
 require 'zimbra/calendar'
 require 'zimbra/appointment'
+require 'zimbra/directory'
+require 'zimbra/alias'
 require 'zimbra/ext/hash'
 require 'zimbra/extra/date_helpers'
 
