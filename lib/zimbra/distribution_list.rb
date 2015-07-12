@@ -22,7 +22,7 @@ module Zimbra
       end
     end
 
-    attr_accessor :id, :name, :admin_console_ui_components, :admin_group, :members
+    attr_accessor :id, :name, :admin_console_ui_components, :admin_group, :members, :restricted
 
     def initialize(options = {})
       options.each { |name, value| self.send("#{name}=", value) }
@@ -50,6 +50,10 @@ module Zimbra
     end
     def admin_group?
       @admin_group
+    end
+    
+    def restricted?
+      @restricted
     end
 
     def delete
@@ -211,10 +215,11 @@ module Zimbra
           ui_components = A.read(node, 'zimbraAdminConsoleUIComponents')
           admin_group = A.read(node, 'zimbraIsAdminGroup')
           members = get_members(node)
+          restricted = !A.read(node, 'zimbraACE').nil? # Unrestricted unless it has any ACE
 
           Zimbra::DistributionList.new(:id => id, :name => name,
             :admin_console_ui_components => ui_components, :admin_group => admin_group,
-            :members => members)
+            :members => members, :restricted => restricted)
         end
         
         def get_members(node)
