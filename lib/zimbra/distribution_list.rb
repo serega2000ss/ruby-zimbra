@@ -22,7 +22,7 @@ module Zimbra
       end
     end
 
-    attr_accessor :id, :name, :admin_console_ui_components, :admin_group, :members, :restricted
+    attr_accessor :id, :name, :admin_console_ui_components, :admin_group, :members, :restricted, :owners_id
 
     def initialize(options = {})
       options.each { |name, value| self.send("#{name}=", value) }
@@ -216,10 +216,11 @@ module Zimbra
           admin_group = A.read(node, 'zimbraIsAdminGroup')
           members = get_members(node)
           restricted = !A.read(node, 'zimbraACE').nil? # Unrestricted unless it has any ACE
+          owners_id = restricted ? A.read(node, 'zimbraACE') : []
 
           Zimbra::DistributionList.new(:id => id, :name => name,
             :admin_console_ui_components => ui_components, :admin_group => admin_group,
-            :members => members, :restricted => restricted)
+            :members => members, :restricted => restricted, owners_id: owners_id)
         end
         
         def get_members(node)
