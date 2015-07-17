@@ -13,6 +13,10 @@ module Zimbra
         options[:limit] ||= 25
         DirectoryService.search(query, type.to_sym, domain, options)
       end
+
+      def get_grants(id, type)
+        DirectoryService.get_grants(id, type)
+      end
     end
   end
 
