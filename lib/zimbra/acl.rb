@@ -35,15 +35,17 @@ module Zimbra
       end
     end
 
-    attr_accessor :target_id, :target_class, :name
+    attr_accessor :target_id, :target_class, :name, :target_name
 
     def initialize(options = {})
       if options[:target]
         self.target_id = options[:target].id
         self.target_class = options[:target].class
+        self.target_name = options[:target].name unless options[:target].name.nil?
       else
         self.target_id = options[:target_id]
         self.target_class = options[:target_class]
+        self.target_name = options[:target_name] unless options[:target_name].nil?
       end
       self.name = options[:name]
     end

@@ -22,7 +22,8 @@ module Zimbra
       end
     end
 
-    attr_accessor :id, :name, :admin_console_ui_components, :admin_group, :members, :restricted, :owners_id
+    attr_accessor :id, :name, :admin_console_ui_components, :admin_group
+    attr_accessor :members, :restricted, :acls
 
     def initialize(options = {})
       options.each { |name, value| self.send("#{name}=", value) }
@@ -51,7 +52,7 @@ module Zimbra
     def admin_group?
       @admin_group
     end
-    
+
     def restricted?
       @restricted
     end
@@ -216,22 +217,22 @@ module Zimbra
           admin_group = A.read(node, 'zimbraIsAdminGroup')
           members = get_members(node)
           restricted = !A.read(node, 'zimbraACE').nil? # Unrestricted unless it has any ACE
-          owners_id = restricted ? A.read(node, 'zimbraACE') : []
+          acls = restricted ? Zimbra::ACL.read(node) : []
 
           Zimbra::DistributionList.new(:id => id, :name => name,
             :admin_console_ui_components => ui_components, :admin_group => admin_group,
-            :members => members, :restricted => restricted, owners_id: owners_id)
+            :members => members, :restricted => restricted, acls: acls)
         end
-        
+
         def get_members(node)
           # Return this if we are getting here by find_by_*
           return (node/"//n2:dlm").map { |n| n.to_s } if (node/"//n2:dlm").any?
-          
+
           # Return this if we get here by DirectorySearch
           fwds = A.read(node, 'zimbraMailForwardingAddress')
           fwds.is_a?(Array) ? fwds.map { |n| n.to_s } : [fwds]
         end
-        
+
       end
     end
   end

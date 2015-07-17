@@ -15,7 +15,7 @@ module Zimbra
       end
     end
   end
-    
+
   class DirectoryService < HandsoapService
     # This are the type off types (objects) that Zimbra has
     # "distributionlists,aliases,accounts,dynamicgroups,resources,domains"
@@ -25,7 +25,7 @@ module Zimbra
       account: { zimbra_type: 'accounts', node_name: 'account', class: Zimbra::Account },
       domain: { zimbra_type: 'domains', node_name: 'domain', class: Zimbra::Domain }
     }
-    
+
     def search(query, type, domain, options = {})
       xml = invoke("n2:SearchDirectoryRequest") do |message|
         Builder.search_directory(message, query, type, domain, options)
@@ -33,7 +33,17 @@ module Zimbra
       return nil if soap_fault_not_found?
       Parser.search_directory_response(xml, type)
     end
-    
+
+    # method to get the grants on an object
+    # check https://files.zimbra.com/docs/soap_api/8.5.0/api-reference/zimbraAdmin/GetGrants.html
+    def get_grants(id, type)
+      xml = invoke('n2:GetGrantsRequest') do |message|
+        Builder.get_grants(message, id, type)
+      end
+      return nil if soap_fault_not_found?
+      Parser.get_grants_response(xml, type)
+    end
+
     module Builder
       class << self
         def search_directory(message, query, type, domain, options)
@@ -45,9 +55,16 @@ module Zimbra
           message.set_attr('sort_by', options[:sort_by]) if options[:sort_by]
           message.set_attr('sort_ascending', options[:sort_ascending]) if options[:sort_ascending]
         end
+
+        def get_grants(message, id, type)
+          message.add 'target', id do |c|
+            c.set_attr 'by', 'id'
+            c.set_attr 'type', type
+          end
+        end
       end
     end
-    
+
     module Parser
       class << self
         def search_directory_response(response, type)
@@ -55,7 +72,21 @@ module Zimbra
           items = (response/"//n2:#{ZIMBRA_TYPES_HASH[type][:node_name]}")
           items.map { |i| object_list_response(i, type) }
         end
-        
+
+        def get_grants_response(response, type)
+          opts = []
+          grants = (response/"//n2:grant")
+          grants.each do |n|
+            hash = {}
+            hash[:target_id] = (n/'n2:grantee'/'@id').to_s
+            hash[:target_class] = Zimbra::ACL::TARGET_MAPPINGS[(n/'n2:grantee'/'@type').to_s]
+            hash[:target_name] = (n/'n2:grantee'/'@name').to_s
+            hash[:name] = (n/'n2:right').to_s
+            opts << Zimbra::ACL.new(hash)
+          end
+          opts
+        end
+
         # This just call the parser_response method of the object
         # in the case of the account type, it will call
         # Zimbra::AccountService::Parser.account_response(node)
@@ -65,7 +96,7 @@ module Zimbra
           object = Object.const_get parser_module
           object.send("#{type.to_s}_response", node)
         end
-        
+
         # This method is to erase all others nodes from document
         # so the xpath search like (//xxxx) works, beacuse (//) always start
         # at the beginning of the document, not the current element
@@ -76,7 +107,7 @@ module Zimbra
           directory_response.add_child element
           node
         end
-        
+
       end
     end
   end
