@@ -23,7 +23,7 @@ module Zimbra
     end
 
     attr_accessor :id, :name, :admin_console_ui_components, :admin_group
-    attr_accessor :members, :restricted, :acls
+    attr_accessor :members, :restricted, :acls, :display_name, :cn
 
     def initialize(options = {})
       options.each { |name, value| self.send("#{name}=", value) }
@@ -213,6 +213,7 @@ module Zimbra
         def distribution_list_response(node)
           id = (node/'@id').to_s
           name = (node/'@name').to_s
+          cn = (node/'@cn').to_s
           ui_components = A.read(node, 'zimbraAdminConsoleUIComponents')
           admin_group = A.read(node, 'zimbraIsAdminGroup')
           members = get_members(node)
@@ -220,8 +221,10 @@ module Zimbra
           acls = restricted ? Zimbra::ACL.read(node) : []
 
           Zimbra::DistributionList.new(:id => id, :name => name,
-            :admin_console_ui_components => ui_components, :admin_group => admin_group,
-            :members => members, :restricted => restricted, acls: acls)
+            admin_console_ui_components: ui_components, admin_group: admin_group,
+            members: members, restricted: restricted, acls: acls, cn: cn,
+            display_name: cn
+            )
         end
 
         def get_members(node)
