@@ -15,6 +15,7 @@ require 'zimbra/appointment'
 require 'zimbra/directory'
 require 'zimbra/alias'
 require 'zimbra/ext/hash'
+require 'zimbra/ext/string'
 require 'zimbra/extra/date_helpers'
 
 # Manages a Zimbra SOAP session.  Offers ability to set the endpoint URL, log in, and enable debugging.
@@ -29,15 +30,15 @@ module Zimbra
     def admin_api_url=(url)
       @@admin_api_url = url
     end
-    
+
     def account_api_url
       @@account_api_url
     end
-    
+
     def account_api_url=(url)
       @@account_api_url = url
     end
-    
+
     # Turn debugging on/off.  Outputs full SOAP conversations to stdout.
     #   Zimbra.debug = true
     #   Zimbra.debug = false
@@ -60,11 +61,11 @@ module Zimbra
     def auth_token
       @@auth_token
     end
-    
+
     def session_lifetime
       @@session_lifetime
     end
-    
+
     def account_auth_token
       @@account_auth_token
     end
@@ -80,7 +81,7 @@ module Zimbra
     def reset_login(username, password)
       @@auth_token, @@session_lifetime = Auth.login(username, password)
     end
-    
+
     def account_login(username)
       delegate_auth_token = DelegateAuthToken.for_account_name(username)
       return false unless delegate_auth_token
