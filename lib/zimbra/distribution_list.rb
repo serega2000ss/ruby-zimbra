@@ -65,6 +65,10 @@ module Zimbra
       DistributionListService.add_alias(self,alias_name)
     end
 
+    def rename(new_name)
+      DistributionListService.rename(self, new_name)
+    end
+
     def save
       DistributionListService.modify(self)
     end
@@ -141,6 +145,13 @@ module Zimbra
       end
     end
 
+    def rename(distribution_list, new_name)
+      xml = invoke('n2:RenameDistributionListRequest') do |message|
+        Builder.rename(message, distribution_list.id, new_name)
+      end
+      Parser.distribution_list_response(xml/'//n2:dl')
+    end
+
     module Builder
       class << self
         def create(message, name)
@@ -208,6 +219,12 @@ module Zimbra
           message.add 'id', id
           message.add 'alias', alias_name
         end
+
+        def rename(message, id, new_name)
+          message.add 'id', id
+          message.add 'newName', new_name
+        end
+
       end
     end
     module Parser
