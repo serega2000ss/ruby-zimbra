@@ -234,6 +234,10 @@ module Zimbra
           items.map { |i| distribution_list_response(i) }
         end
 
+        def distributionlist_response(node)
+          distribution_list_response(node)
+        end
+
         def distribution_list_response(node)
           id = (node/'@id').to_s
           name = (node/'@name').to_s
