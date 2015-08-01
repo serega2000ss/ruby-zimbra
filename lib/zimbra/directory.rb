@@ -25,6 +25,7 @@ module Zimbra
     # "distributionlists,aliases,accounts,dynamicgroups,resources,domains"
     ZIMBRA_TYPES_HASH = {
       distribution_list: { zimbra_type: 'distributionlists', node_name: 'dl', class: Zimbra::DistributionList },
+      distributionlist: { zimbra_type: 'distributionlists', node_name: 'dl', class: Zimbra::DistributionList },
       #alias: { zimbra_type: 'aliases', node_name: 'alias', class: Zimbra::Alias },
       account: { zimbra_type: 'accounts', node_name: 'account', class: Zimbra::Account },
       domain: { zimbra_type: 'domains', node_name: 'domain', class: Zimbra::Domain }
