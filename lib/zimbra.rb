@@ -17,6 +17,7 @@ require 'zimbra/directory'
 require 'zimbra/alias'
 require 'zimbra/ext/hash'
 require 'zimbra/ext/string'
+require 'zimbra/ext/handsoap_curb_driver'
 require 'zimbra/extra/date_helpers'
 
 # Manages a Zimbra SOAP session.  Offers ability to set the endpoint URL, log in, and enable debugging.
