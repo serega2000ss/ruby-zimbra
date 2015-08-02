@@ -40,7 +40,7 @@ module Zimbra
       doc.add_namespace 'n2', "urn:zimbraAdmin"
     end
   end
-  
+
   module HandsoapUriOverrides
     def uri
       Zimbra.admin_api_url
@@ -57,6 +57,14 @@ module Zimbra
     include HandsoapErrors
     include HandsoapNamespaces
     extend HandsoapUriOverrides
+
+    def http_driver_instance
+      unless @driver_instance
+        @driver_instance = super
+        @driver_instance.ssl_verify_peer = false
+      end
+      @driver_instance
+    end
 
     def on_create_document(doc)
       request_namespaces(doc)
