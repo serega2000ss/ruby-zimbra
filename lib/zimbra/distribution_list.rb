@@ -1,18 +1,6 @@
 module Zimbra
-  class DistributionList
+  class DistributionList < Zimbra::Base
     class << self
-      def all
-        DistributionListService.all
-      end
-
-      def find_by_id(id)
-        DistributionListService.get_by_id(id)
-      end
-
-      def find_by_name(name)
-        DistributionListService.get_by_name(name)
-      end
-
       def create(name)
         DistributionListService.create(name)
       end
@@ -75,27 +63,6 @@ module Zimbra
   end
 
   class DistributionListService < HandsoapService
-    def all
-      xml = invoke("n2:GetAllDistributionListsRequest")
-      Parser.get_all_response(xml)
-    end
-
-    def get_by_id(id)
-      xml = invoke("n2:GetDistributionListRequest") do |message|
-        Builder.get_by_id(message, id)
-      end
-      return nil if soap_fault_not_found?
-      Parser.distribution_list_response(xml/'//n2:dl')
-    end
-
-    def get_by_name(name)
-      xml = invoke("n2:GetDistributionListRequest") do |message|
-        Builder.get_by_name(message, name)
-      end
-      return nil if soap_fault_not_found?
-      Parser.distribution_list_response(xml/'//n2:dl')
-    end
-
     def create(name)
       xml = invoke("n2:CreateDistributionListRequest") do |message|
         Builder.create(message, name)
@@ -158,18 +125,6 @@ module Zimbra
           message.add 'name', name
         end
 
-        def get_by_id(message, id)
-          message.add 'dl', id do |d|
-            d.set_attr 'by', 'id'
-          end
-        end
-
-        def get_by_name(message, name)
-          message.add 'dl', name do |d|
-            d.set_attr "by", 'name'
-          end
-        end
-
         def modify(message, distribution_list)
           message.add 'id', distribution_list.id
           modify_attributes(message, distribution_list)
@@ -229,10 +184,6 @@ module Zimbra
     end
     module Parser
       class << self
-        def get_all_response(response)
-          items = response/"//n2:dl"
-          items.map { |i| distribution_list_response(i) }
-        end
 
         def distributionlist_response(node)
           distribution_list_response(node)

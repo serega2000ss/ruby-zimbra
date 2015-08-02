@@ -1,18 +1,6 @@
 module Zimbra
-  class Domain
+  class Domain < Zimbra::Base
     class << self
-      def all
-        DomainService.all
-      end
-
-      def find_by_id(id)
-        DomainService.get_by_id(id)
-      end
-
-      def find_by_name(name)
-        DomainService.get_by_name(name)
-      end
-
       def create(name, attributes = {})
         DomainService.create(name, attributes)
       end
@@ -29,7 +17,7 @@ module Zimbra
       self.name = name
       self.acls = acls || []
     end
-    
+
     def get_attributes(attributes = [])
       return {} if attributes.empty?
       attr_hash = Hash.new
@@ -40,15 +28,15 @@ module Zimbra
       end
       attr_hash
     end
-    
+
     def count_accounts
       DomainService.count_accounts(id)
     end
-    
+
     def update_attributes(attributes = {})
       DomainService.modify(self, attributes)
     end
-    
+
     def save
       DomainService.modify(self)
     end
@@ -59,10 +47,6 @@ module Zimbra
   end
 
   class DomainService < HandsoapService
-    def all
-      xml = invoke("n2:GetAllDomainsRequest")
-      Parser.get_all_response(xml)
-    end
 
     def create(name, attributes = {})
       xml = invoke("n2:CreateDomainRequest") do |message|
@@ -70,29 +54,12 @@ module Zimbra
       end
       Parser.domain_response(xml/"//n2:domain")
     end
-    
+
     def count_accounts(id)
       xml = invoke("n2:CountAccountRequest") do |message|
         Builder.count_accounts(message, id)
       end
       Parser.count_accounts_response(xml)
-    end
-
-    def get_by_id(id, raw = false)
-      xml = invoke("n2:GetDomainRequest") do |message|
-        Builder.get_by_id(message, id)
-      end
-      return nil if soap_fault_not_found?
-      return xml if raw
-      Parser.domain_response(xml/"//n2:domain")
-    end
-
-    def get_by_name(name)
-      xml = invoke("n2:GetDomainRequest") do |message|
-        Builder.get_by_name(message, name)
-      end
-      return nil if soap_fault_not_found?
-      Parser.domain_response(xml/"//n2:domain")
     end
 
     def modify(domain, attributes = {})
@@ -116,22 +83,10 @@ module Zimbra
             A.inject(message, k, v)
           end
         end
-        
+
         def count_accounts(message, id)
           message.add 'domain', id do |c|
             c.set_attr 'by', 'id'
-          end
-        end
-
-        def get_by_id(message, id)
-          message.add 'domain', id do |c|
-            c.set_attr 'by', 'id'
-          end
-        end
-
-        def get_by_name(message, name)
-          message.add 'domain', name do |c|
-            c.set_attr 'by', 'name'
           end
         end
 
@@ -139,7 +94,7 @@ module Zimbra
           message.add 'id', domain.id
           modify_attributes(message, attributes)
         end
-        
+
         def modify_attributes(message, attributes = {})
           attributes.each do |k,v|
             A.inject(message, k, v)
@@ -153,11 +108,6 @@ module Zimbra
     end
     class Parser
       class << self
-        def get_all_response(response)
-          (response/"//n2:domain").map do |node|
-            domain_response(node)
-          end
-        end
 
         def domain_response(node)
           id = (node/'@id').to_s
@@ -165,7 +115,7 @@ module Zimbra
           acls = Zimbra::ACL.read(node)
           Zimbra::Domain.new(id, name, acls)
         end
-        
+
         def count_accounts_response(response)
           hash = {}
           (response/"//n2:cos").map do |node|
@@ -174,7 +124,7 @@ module Zimbra
           end
           hash
         end
-        
+
       end
     end
   end

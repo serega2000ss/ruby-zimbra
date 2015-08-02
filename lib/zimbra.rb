@@ -1,6 +1,7 @@
 $:.unshift(File.join(File.dirname(__FILE__)))
 require 'zimbra/handsoap_service'
 require 'zimbra/handsoap_account_service'
+require 'zimbra/base'
 require 'zimbra/auth'
 require 'zimbra/cos'
 require 'zimbra/domain'
