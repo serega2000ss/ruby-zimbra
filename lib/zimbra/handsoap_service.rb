@@ -59,10 +59,8 @@ module Zimbra
     extend HandsoapUriOverrides
 
     def http_driver_instance
-      unless @driver_instance
-        @driver_instance = super
-        @driver_instance.ssl_verify_peer = false
-      end
+      @driver_instance ||= super
+      @driver_instance.ssl_verify_peer = false
       @driver_instance
     end
 
