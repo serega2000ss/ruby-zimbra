@@ -10,25 +10,6 @@ module Zimbra
       end
     end
 
-    attr_accessor :id, :name, :acls
-
-    def initialize(id, name, acls = [])
-      self.id = id
-      self.name = name
-      self.acls = acls || []
-    end
-
-    def get_attributes(attributes = [])
-      return {} if attributes.empty?
-      attr_hash = Hash.new
-      raw = true
-      raw_data = DomainService.get_by_id(id, raw)
-      attributes.each do |attr|
-        attr_hash[attr] = Zimbra::A.read raw_data, attr
-      end
-      attr_hash
-    end
-
     def count_accounts
       DomainService.count_accounts(id)
     end
@@ -108,14 +89,6 @@ module Zimbra
     end
     class Parser
       class << self
-
-        def domain_response(node)
-          id = (node/'@id').to_s
-          name = (node/'@name').to_s
-          acls = Zimbra::ACL.read(node)
-          Zimbra::Domain.new(id, name, acls)
-        end
-
         def count_accounts_response(response)
           hash = {}
           (response/"//n2:cos").map do |node|

@@ -13,8 +13,13 @@ module Zimbra
     attr_accessor :id, :name, :admin_console_ui_components, :admin_group
     attr_accessor :members, :restricted, :acls, :display_name, :cn, :mail
 
-    def initialize(options = {})
-      options.each { |name, value| self.send("#{name}=", value) }
+    def initialize(id, name, acls = [], zimbra_attrs = {}, node = nil)
+      super
+      @cn = zimbra_attrs['cn']
+      @display_name = zimbra_attrs['displayName']
+      self.admin_group = zimbra_attrs['zimbraIsAdminGroup']
+      @members = Zimbra::DistributionListService::Parser.get_members node
+      @restricted = !acls.nil?
       @original_members = self.members.dup
     end
 
@@ -182,40 +187,18 @@ module Zimbra
 
       end
     end
+
+    # Doc Placeholder
     module Parser
       class << self
-
-        def distributionlist_response(node)
-          distribution_list_response(node)
-        end
-
-        def distribution_list_response(node)
-          id = (node/'@id').to_s
-          name = (node/'@name').to_s
-          cn = A.read(node, 'cn')
-          display_name = A.read(node, 'displayName')
-          ui_components = A.read(node, 'zimbraAdminConsoleUIComponents')
-          admin_group = A.read(node, 'zimbraIsAdminGroup')
-          members = get_members(node)
-          restricted = !A.read(node, 'zimbraACE').nil? # Unrestricted unless it has any ACE
-          acls = restricted ? Zimbra::ACL.read(node) : []
-
-          Zimbra::DistributionList.new(:id => id, :name => name,
-            admin_console_ui_components: ui_components, admin_group: admin_group,
-            members: members, restricted: restricted, acls: acls, cn: cn,
-            display_name: display_name, mail: name
-            )
-        end
-
         def get_members(node)
           # Return this if we are getting here by find_by_*
-          return (node/"//n2:dlm").map { |n| n.to_s } if (node/"//n2:dlm").any?
+          return (node/"//n2:dlm").map(&:to_s) if (node/"//n2:dlm").any?
 
           # Return this if we get here by DirectorySearch
           fwds = A.read(node, 'zimbraMailForwardingAddress')
-          fwds.is_a?(Array) ? fwds.map { |n| n.to_s } : [fwds]
+          fwds.is_a?(Array) ? fwds.map(&:to_s) : [fwds]
         end
-
       end
     end
   end

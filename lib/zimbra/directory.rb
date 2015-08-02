@@ -97,9 +97,8 @@ module Zimbra
         # Zimbra::AccountService::Parser.account_response(node)
         def object_list_response(node, type)
           node = clean_node node
-          parser_module = ZIMBRA_TYPES_HASH[type][:class].name + 'Service::Parser'
-          object = Object.const_get parser_module
-          object.send("#{type.to_s}_response", node)
+          class_name = ZIMBRA_TYPES_HASH[type][:class].name.gsub(/Zimbra::/, '')
+          Zimbra::BaseService::Parser.response(class_name, node, true)
         end
 
         # This method is to erase all others nodes from document

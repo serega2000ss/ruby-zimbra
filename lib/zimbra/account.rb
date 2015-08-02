@@ -12,16 +12,12 @@ module Zimbra
       end
     end
 
-    attr_accessor :id, :name, :password, :acls, :cos_id, :delegated_admin, :attributes
+    attr_accessor :cos_id
 
-    def initialize(options = {})
-      self.id = options[:id]
-      self.name = options[:name]
-      self.password = options[:password]
-      self.acls = options[:acls] || []
-      self.cos_id = (options[:cos] ? options[:cos].id : options[:cos_id])
-      self.delegated_admin = options[:delegated_admin]
-      self.attributes = options[:attributes] || []
+    def initialize(id, name, acls = [], zimbra_attrs = {}, node = nil)
+      super
+      self.cos_id = zimbra_attrs['zimbraCOSId']
+      self.delegated_admin = zimbra_attrs['zimbraIsDelegatedAdminAccount']
     end
 
     def delegated_admin=(val)
@@ -30,17 +26,6 @@ module Zimbra
 
     def delegated_admin?
       @delegated_admin
-    end
-
-    def get_attributes(attributes = [])
-      return {} if attributes.empty?
-      attr_hash = Hash.new
-      raw = true
-      raw_data = AccountService.get_by_id(id, raw)
-      attributes.each do |attr|
-        attr_hash[attr] = Zimbra::A.read raw_data, attr
-      end
-      attr_hash
     end
 
     def save
@@ -125,14 +110,6 @@ module Zimbra
     end
     class Parser
       class << self
-        def account_response(node)
-          id = (node/'@id').to_s
-          name = (node/'@name').to_s
-          acls = Zimbra::ACL.read(node)
-          cos_id = Zimbra::A.read(node, 'zimbraCOSId')
-          delegated_admin = Zimbra::A.read(node, 'zimbraIsDelegatedAdminAccount')
-          Zimbra::Account.new(:id => id, :name => name, :acls => acls, :cos_id => cos_id, :delegated_admin => delegated_admin)
-        end
       end
     end
   end
