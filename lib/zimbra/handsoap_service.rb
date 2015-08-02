@@ -58,12 +58,6 @@ module Zimbra
     include HandsoapNamespaces
     extend HandsoapUriOverrides
 
-    def http_driver_instance
-      @driver_instance ||= super
-      @driver_instance.ssl_verify_peer = false
-      @driver_instance
-    end
-
     def on_create_document(doc)
       request_namespaces(doc)
       header = doc.find("Header")
