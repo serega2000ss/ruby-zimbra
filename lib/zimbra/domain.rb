@@ -1,10 +1,6 @@
 module Zimbra
   class Domain < Zimbra::Base
     class << self
-      def create(name, attributes = {})
-        DomainService.create(name, attributes)
-      end
-
       def acl_name
         'domain'
       end
@@ -29,13 +25,6 @@ module Zimbra
 
   class DomainService < HandsoapService
 
-    def create(name, attributes = {})
-      xml = invoke("n2:CreateDomainRequest") do |message|
-        Builder.create(message, name, attributes)
-      end
-      Parser.domain_response(xml/"//n2:domain")
-    end
-
     def count_accounts(id)
       xml = invoke("n2:CountAccountRequest") do |message|
         Builder.count_accounts(message, id)
@@ -58,12 +47,7 @@ module Zimbra
 
     class Builder
       class << self
-        def create(message, name, attributes = {})
-          message.add 'name', name
-          attributes.each do |k,v|
-            A.inject(message, k, v)
-          end
-        end
+        
 
         def count_accounts(message, id)
           message.add 'domain', id do |c|

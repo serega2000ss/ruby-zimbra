@@ -24,6 +24,11 @@ module Zimbra
       def find_by_name(name)
         BaseService.get_by_name(name, class_name)
       end
+      
+      def create(name, attrs = {})
+        BaseService.create(name, attrs)
+      end
+      
     end
 
     attr_accessor :id, :name, :acls, :zimbra_attrs
@@ -34,19 +39,6 @@ module Zimbra
       self.acls = acls || []
       self.zimbra_attrs = zimbra_attrs
     end
-
-    # # Methodos para trabajar con los attributos de Zimbra
-    # def method_missing(method, *arguments, &block)
-    #
-    #   if method.to_s =~ /^zimbra_.*[a-z]$/
-    #     camel_case_name = Zimbra::String.camel_case_lower(method.to_s)
-    #     zimbra_attrs[camel_case_name]
-    #   elsif method.to_s =~ /^zimbra_.*=$/
-    #     camel_case_name = Zimbra::String.camel_case_lower(method.to_s)
-    #     zimbra_attrs[camel_case_name] = arguments.first
-    #   end
-    # end
-
   end
 
   # Doc Placeholder
@@ -55,6 +47,14 @@ module Zimbra
       request_name = "n2:GetAll#{class_name}sRequest"
       xml = invoke(request_name)
       Parser.get_all_response(class_name, xml)
+    end
+    
+    def create(name, attributes = {})
+      request_name = "n2:Create#{class_name}Request"
+      xml = invoke(request_name) do |message|
+        Builder.create(message, name, attributes)
+      end
+      Parser.response(class_name, xml/"//n2:#{namespace}")
     end
 
     def get_by_id(id, class_name)
@@ -80,6 +80,14 @@ module Zimbra
   # Doc Placeholder
     class Builder
       class << self
+        
+        def create(message, name, attributes = {})
+          message.add 'name', name
+          attributes.each do |k,v|
+            A.inject(message, k, v)
+          end
+        end
+        
         def get_by_id(message, id, class_name)
           namespace = Zimbra::Base::NAMESPACES[class_name]
           message.add namespace, id do |c|
