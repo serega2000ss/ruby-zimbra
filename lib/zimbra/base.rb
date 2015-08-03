@@ -54,6 +54,7 @@ module Zimbra
       xml = invoke(request_name) do |message|
         Builder.create(message, name, attributes)
       end
+      namespace = Zimbra::Base::NAMESPACES[class_name]
       Parser.response(class_name, xml/"//n2:#{namespace}")
     end
 
