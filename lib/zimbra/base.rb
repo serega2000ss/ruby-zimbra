@@ -45,6 +45,7 @@ module Zimbra
       BaseService.modify(id, attrs, self.class.class_name)
     end
     
+    # Zimbra only allows renaming domains directly through LDAP
     def rename(newname)
       fail Zimbra::HandsoapErrors::NotImplemented.new('Rename domain only via LDAP') if self.is_a?(Zimbra::Domain)
       BaseService.rename(id, newname, self.class.class_name)
