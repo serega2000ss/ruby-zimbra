@@ -25,8 +25,8 @@ module Zimbra
         BaseService.get_by_name(name, class_name)
       end
       
-      def create(name, attrs = {})
-        BaseService.create(name, attrs)
+      def create(name, attrs = {}, class_name)
+        BaseService.create(name, attrs, class_name)
       end
       
     end
@@ -49,7 +49,7 @@ module Zimbra
       Parser.get_all_response(class_name, xml)
     end
     
-    def create(name, attributes = {})
+    def create(name, attributes = {}, class_name)
       request_name = "n2:Create#{class_name}Request"
       xml = invoke(request_name) do |message|
         Builder.create(message, name, attributes)
