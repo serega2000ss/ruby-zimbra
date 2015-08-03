@@ -32,10 +32,6 @@ module Zimbra
       AccountService.modify(self)
     end
 
-    def delete
-      AccountService.delete(self)
-    end
-
     def add_alias(alias_name)
       AccountService.add_alias(self,alias_name)
     end

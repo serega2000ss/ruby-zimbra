@@ -1,10 +1,6 @@
 module Zimbra
   class DistributionList < Zimbra::Base
     class << self
-      def create(name)
-        DistributionListService.create(name)
-      end
-
       def acl_name
         'grp'
       end
@@ -50,16 +46,8 @@ module Zimbra
       @restricted
     end
 
-    def delete
-      DistributionListService.delete(self)
-    end
-
     def add_alias(alias_name)
       DistributionListService.add_alias(self,alias_name)
-    end
-
-    def rename(new_name)
-      DistributionListService.rename(self, new_name)
     end
 
     def save

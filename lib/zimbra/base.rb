@@ -40,6 +40,10 @@ module Zimbra
       self.zimbra_attrs = zimbra_attrs
     end
     
+    def delete
+      BaseService.delete(id, self.class.class_name)
+    end
+    
     def modify(attrs = {})
       rename(attrs.delete('name')) if attrs['name']
       BaseService.modify(id, attrs, self.class.class_name)
@@ -59,6 +63,14 @@ module Zimbra
       request_name = "n2:GetAll#{class_name}sRequest"
       xml = invoke(request_name)
       Parser.get_all_response(class_name, xml)
+    end
+    
+    def delete(id, class_name)
+      request_name = "n2:Delete#{class_name}Request"
+      xml = invoke(request_name) do |message|
+        Builder.delete(message, id)
+      end
+      true
     end
     
     def create(name, attributes = {}, class_name)
@@ -117,6 +129,10 @@ module Zimbra
           attributes.each do |k,v|
             A.inject(message, k, v)
           end
+        end
+        
+        def delete(message, id)
+          message.set_attr 'id', id
         end
         
         def get_by_id(message, id, class_name)

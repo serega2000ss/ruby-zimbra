@@ -14,9 +14,6 @@ module Zimbra
       DomainService.modify(self)
     end
 
-    def delete
-      DomainService.delete(self)
-    end
   end
 
   class DomainService < HandsoapService
