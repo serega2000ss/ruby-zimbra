@@ -25,7 +25,7 @@ module Zimbra
         BaseService.get_by_name(name, class_name)
       end
       
-      def create(name, attrs = {}, class_name)
+      def create(name, attrs = {})
         BaseService.create(name, attrs, class_name)
       end
       
