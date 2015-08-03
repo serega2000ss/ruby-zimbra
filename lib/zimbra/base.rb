@@ -39,6 +39,17 @@ module Zimbra
       self.acls = acls || []
       self.zimbra_attrs = zimbra_attrs
     end
+    
+    def modify(attrs = {})
+      rename(attrs.delete('name')) if attrs['name']
+      BaseService.modify(id, attrs, self.class.class_name)
+    end
+    
+    def rename(newname)
+      fail Zimbra::HandsoapErrors::NotImplemented.new('Rename domain only via LDAP') if self.is_a?(Zimbra::Domain)
+      BaseService.rename(id, newname, self.class.class_name)
+    end
+    
   end
 
   # Doc Placeholder
@@ -77,6 +88,24 @@ module Zimbra
       namespace = Zimbra::Base::NAMESPACES[class_name]
       Parser.response(class_name, xml/"//n2:#{namespace}")
     end
+    
+    def modify(id, attributes = {}, class_name)
+      request_name = "n2:Modify#{class_name}Request"
+      xml = invoke(request_name) do |message|
+        Builder.modify(message, id, attributes)
+      end
+      namespace = Zimbra::Base::NAMESPACES[class_name]
+      Parser.response(class_name, xml/"//n2:#{namespace}")
+    end
+    
+    def rename(id, newname, class_name)
+      request_name = "n2:Rename#{class_name}Request"
+      xml = invoke(request_name) do |message|
+        Builder.rename(message, id, newname)
+      end
+      namespace = Zimbra::Base::NAMESPACES[class_name]
+      Parser.response(class_name, xml/"//n2:#{namespace}") 
+    end
 
   # Doc Placeholder
     class Builder
@@ -102,6 +131,23 @@ module Zimbra
             c.set_attr 'by', 'name'
           end
         end
+        
+        def modify(message, id, attributes)
+          message.add 'id', id
+          modify_attributes(message, attributes)
+        end
+        
+        def modify_attributes(message, attributes = {})
+          attributes.each do |k,v|
+            A.inject(message, k, v)
+          end
+        end
+        
+        def rename(message, id, newname)
+          message.set_attr 'id', id
+          message.set_attr 'newName', newname
+        end
+        
       end
     end
 

@@ -3,6 +3,8 @@ require 'handsoap'
 module Zimbra
   module HandsoapErrors
     class SOAPFault < StandardError; end
+    class NotFound < StandardError; end
+    class NotImplemented < StandardError; end
 
     @@response = nil
 
