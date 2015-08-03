@@ -2,10 +2,10 @@ module Zimbra
   class Account < Zimbra::Base
     class << self
 
-      def create(options)
-        account = new(options)
-        AccountService.create(account)
-      end
+      # def create(options)
+      #   account = new(options)
+      #   AccountService.create(account)
+      # end
 
       def acl_name
         'usr'
