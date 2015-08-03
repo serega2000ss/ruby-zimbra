@@ -12,7 +12,7 @@ module Zimbra
       report_error(response) if http_error?
     end
     def report_error(response)
-      message = response.body.scan(/<soap:faultstring>(.*)<\/soap:faultstring>/).first
+      message = response.body.scan(/<faultstring>(.*)<\/faultstring>/).first.first
       raise SOAPFault, message
     end
     def on_after_create_http_request(request)
