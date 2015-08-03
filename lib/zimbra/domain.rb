@@ -50,9 +50,9 @@ module Zimbra
       Parser.domain_response(xml/'//n2:domain')
     end
 
-    def delete(dist)
+    def delete
       xml = invoke("n2:DeleteDomainRequest") do |message|
-        Builder.delete(message, dist.id)
+        Builder.delete(message, id)
       end
     end
 
