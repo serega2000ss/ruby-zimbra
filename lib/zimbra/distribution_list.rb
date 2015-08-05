@@ -71,11 +71,9 @@ module Zimbra
 
     def modify_members(distribution_list)
       distribution_list.new_members.each do |member|
-        pp "Miembro: #{member}"
         add_member(distribution_list, member)
       end
       distribution_list.removed_members.each do |member|
-        pp "Miembro: #{member}"
         remove_member(distribution_list, member)
       end
       return true
@@ -137,11 +135,11 @@ module Zimbra
       class << self
         def get_members(node)
           # Return this if we are getting here by find_by_*
-          return (node/"//n2:dlm").map(&:to_s) if (node/"//n2:dlm").any?
+          return (node/"//n2:dlm").map(&:to_s).compact if (node/"//n2:dlm").any?
 
           # Return this if we get here by DirectorySearch
           fwds = A.read(node, 'zimbraMailForwardingAddress')
-          fwds.is_a?(Array) ? fwds.map(&:to_s) : [fwds]
+          fwds.is_a?(Array) ? fwds.map(&:to_s).compact : [fwds].compact
         end
       end
     end
