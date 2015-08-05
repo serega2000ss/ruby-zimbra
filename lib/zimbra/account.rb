@@ -31,8 +31,12 @@ module Zimbra
       AccountService.modify(self)
     end
 
+    def set_password(new_password)
+      AccountService.set_password(id, new_password)
+    end
+
     def add_alias(alias_name)
-      AccountService.add_alias(self,alias_name)
+      AccountService.add_alias(self, alias_name)
     end
   end
 
@@ -44,6 +48,13 @@ module Zimbra
       end
       class_name = Zimbra::Account.class_name
       Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
+    end
+
+    def set_password(id, new_password)
+      xml = invoke('n2:SetPasswordRequest') do |message|
+        Builder.set_password(message, id, new_password)
+      end
+      true
     end
 
     def add_alias(account,alias_name)
@@ -63,25 +74,9 @@ module Zimbra
           end
         end
 
-        def modify(message, account)
-          message.add 'id', account.id
-          modify_attributes(message, distribution_list)
-        end
-
-        def modify_attributes(message, account)
-          if account.acls.empty?
-            ACL.delete_all(message)
-          else
-            account.acls.each do |acl|
-              acl.apply(message)
-            end
-          end
-          Zimbra::A.inject(node, 'zimbraCOSId', account.cos_id)
-          Zimbra::A.inject(node, 'zimbraIsDelegatedAdminAccount', (delegated_admin ? 'TRUE' : 'FALSE'))
-        end
-
-        def delete(message, id)
-          message.add 'id', id
+        def set_password(message, id, new_password)
+          message.set_attr 'id', id
+          message.set_attr 'newPassword', new_password
         end
 
         def add_alias(message,id,alias_name)
