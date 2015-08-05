@@ -23,9 +23,10 @@ module Zimbra
       @admin_console_ui_components ||= []
     end
 
-    def modify_members(new_members = [])
-      return unless new_members.any?
-      members = new_members
+    def modify_members(members_group = [])
+      pp members_group
+      return unless members_group.any?
+      self.members = members_group
       DistributionListService.modify_members(self)
     end
 
