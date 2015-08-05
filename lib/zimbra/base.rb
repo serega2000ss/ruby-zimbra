@@ -24,11 +24,11 @@ module Zimbra
       def find_by_name(name)
         BaseService.get_by_name(name, class_name)
       end
-      
+
       def create(name, attrs = {})
         BaseService.create(name, attrs, class_name)
       end
-      
+
     end
 
     attr_accessor :id, :name, :acls, :zimbra_attrs
@@ -39,22 +39,22 @@ module Zimbra
       self.acls = acls || []
       self.zimbra_attrs = zimbra_attrs
     end
-    
+
     def delete
       BaseService.delete(id, self.class.class_name)
     end
-    
+
     def modify(attrs = {})
       rename(attrs.delete('name')) if attrs['name']
       BaseService.modify(id, attrs, self.class.class_name)
     end
-    
+
     # Zimbra only allows renaming domains directly through LDAP
     def rename(newname)
       fail Zimbra::HandsoapErrors::NotImplemented.new('Rename domain only via LDAP') if self.is_a?(Zimbra::Domain)
       BaseService.rename(id, newname, self.class.class_name)
     end
-    
+
   end
 
   # Doc Placeholder
@@ -64,7 +64,7 @@ module Zimbra
       xml = invoke(request_name)
       Parser.get_all_response(class_name, xml)
     end
-    
+
     def delete(id, class_name)
       request_name = "n2:Delete#{class_name}Request"
       xml = invoke(request_name) do |message|
@@ -72,7 +72,7 @@ module Zimbra
       end
       true
     end
-    
+
     def create(name, attributes = {}, class_name)
       request_name = "n2:Create#{class_name}Request"
       xml = invoke(request_name) do |message|
@@ -101,7 +101,7 @@ module Zimbra
       namespace = Zimbra::Base::NAMESPACES[class_name]
       Parser.response(class_name, xml/"//n2:#{namespace}")
     end
-    
+
     def modify(id, attributes = {}, class_name)
       request_name = "n2:Modify#{class_name}Request"
       xml = invoke(request_name) do |message|
@@ -110,31 +110,31 @@ module Zimbra
       namespace = Zimbra::Base::NAMESPACES[class_name]
       Parser.response(class_name, xml/"//n2:#{namespace}")
     end
-    
+
     def rename(id, newname, class_name)
       request_name = "n2:Rename#{class_name}Request"
       xml = invoke(request_name) do |message|
         Builder.rename(message, id, newname)
       end
       namespace = Zimbra::Base::NAMESPACES[class_name]
-      Parser.response(class_name, xml/"//n2:#{namespace}") 
+      Parser.response(class_name, xml/"//n2:#{namespace}")
     end
 
   # Doc Placeholder
     class Builder
       class << self
-        
+
         def create(message, name, attributes = {})
           message.add 'name', name
           attributes.each do |k,v|
             A.inject(message, k, v)
           end
         end
-        
+
         def delete(message, id)
           message.set_attr 'id', id
         end
-        
+
         def get_by_id(message, id, class_name)
           namespace = Zimbra::Base::NAMESPACES[class_name]
           message.add namespace, id do |c|
@@ -148,23 +148,23 @@ module Zimbra
             c.set_attr 'by', 'name'
           end
         end
-        
+
         def modify(message, id, attributes)
           message.add 'id', id
           modify_attributes(message, attributes)
         end
-        
+
         def modify_attributes(message, attributes = {})
           attributes.each do |k,v|
             A.inject(message, k, v)
           end
         end
-        
+
         def rename(message, id, newname)
           message.set_attr 'id', id
           message.set_attr 'newName', newname
         end
-        
+
       end
     end
 
@@ -209,4 +209,3 @@ module Zimbra
   end
 
 end
-

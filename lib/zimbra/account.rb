@@ -2,10 +2,9 @@ module Zimbra
   class Account < Zimbra::Base
     class << self
 
-      # def create(options)
-      #   account = new(options)
-      #   AccountService.create(account)
-      # end
+      def create(name, password, attributes = {})
+        AccountService.create(name, password, attributes)
+      end
 
       def acl_name
         'usr'
@@ -39,24 +38,12 @@ module Zimbra
 
   # Doc Placeholder
   class AccountService < HandsoapService
-    def create(account)
+    def create(name, password, attributes)
       xml = invoke("n2:CreateAccountRequest") do |message|
-        Builder.create(message, account)
+        Builder.create(message, name, password, attributes)
       end
-      Parser.account_response(xml/"//n2:account")
-    end
-
-    def modify(account)
-      xml = invoke("n2:ModifyAccountRequest") do |message|
-        Builder.modify(message, account)
-      end
-      Parser.account_response(xml/'//n2:account')
-    end
-
-    def delete(dist)
-      xml = invoke("n2:DeleteAccountRequest") do |message|
-        Builder.delete(message, dist.id)
-      end
+      class_name = Zimbra::Account.class_name
+      Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
     end
 
     def add_alias(account,alias_name)
@@ -68,11 +55,10 @@ module Zimbra
     # Doc Placeholder
     class Builder
       class << self
-        def create(message, account)
-          message.add 'name', account.name
-          message.add 'password', account.password
-          A.inject(message, 'zimbraCOSId', account.cos_id)
-          account.attributes.each do |k,v|
+        def create(message, name, password, attributes)
+          message.add 'name', name
+          message.add 'password', password
+          attributes.each do |k,v|
             A.inject(message, k, v)
           end
         end
