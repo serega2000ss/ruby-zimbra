@@ -23,6 +23,12 @@ module Zimbra
       @admin_console_ui_components ||= []
     end
 
+    def modify_members(new_members = [])
+      return unless new_members.any?
+      members = new_members
+      DistributionListService.modify_members(self)
+    end
+
     def members
       @members ||= []
     end
@@ -63,15 +69,6 @@ module Zimbra
       Parser.distribution_list_response(xml/'//n2:dl')
     end
 
-    def modify(dist)
-      xml = invoke("n2:ModifyDistributionListRequest") do |message|
-        Builder.modify(message, dist)
-      end
-      Parser.distribution_list_response(xml/'//n2:dl')
-
-      modify_members(dist)
-    end
-
     def modify_members(distribution_list)
       distribution_list.new_members.each do |member|
         add_member(distribution_list, member)
@@ -79,6 +76,7 @@ module Zimbra
       distribution_list.removed_members.each do |member|
         remove_member(distribution_list, member)
       end
+      return true
     end
 
     def add_member(distribution_list, member)
@@ -93,48 +91,14 @@ module Zimbra
       end
     end
 
-    def delete(dist)
-      xml = invoke("n2:DeleteDistributionListRequest") do |message|
-        Builder.delete(message, dist.id)
-      end
-    end
-
     def add_alias(distribution_list,alias_name)
       xml = invoke('n2:AddDistributionListAliasRequest') do |message|
         Builder.add_alias(message,distribution_list.id,alias_name)
       end
     end
 
-    def rename(distribution_list, new_name)
-      xml = invoke('n2:RenameDistributionListRequest') do |message|
-        Builder.rename(message, distribution_list.id, new_name)
-      end
-      Parser.distribution_list_response(xml/'//n2:dl')
-    end
-
     module Builder
       class << self
-        def create(message, name)
-          message.add 'name', name
-        end
-
-        def modify(message, distribution_list)
-          message.add 'id', distribution_list.id
-          modify_attributes(message, distribution_list)
-        end
-
-        def modify_attributes(message, distribution_list)
-          modify_admin_console_ui_components(message, distribution_list)
-          modify_is_admin_group(message, distribution_list)
-          modify_info(message, distribution_list)
-        end
-
-        def modify_info(message, dl)
-          %w(display_name cn).each do |info|
-            A.inject(message, Zimbra::String.camel_case_lower(info), dl.send(info))
-          end
-        end
-
         def modify_admin_console_ui_components(message, distribution_list)
           if distribution_list.admin_console_ui_components.empty?
             A.inject(message, 'zimbraAdminConsoleUIComponents', '')
@@ -159,20 +123,10 @@ module Zimbra
           message.add 'dlm', member
         end
 
-        def delete(message, id)
-          message.add 'id', id
-        end
-
         def add_alias(message,id,alias_name)
           message.add 'id', id
           message.add 'alias', alias_name
         end
-
-        def rename(message, id, new_name)
-          message.add 'id', id
-          message.add 'newName', new_name
-        end
-
       end
     end
 
