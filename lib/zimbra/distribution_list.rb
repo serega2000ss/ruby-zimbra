@@ -24,7 +24,6 @@ module Zimbra
     end
 
     def modify_members(members_group = [])
-      pp members_group
       return unless members_group.any?
       self.members = members_group
       DistributionListService.modify_members(self)
@@ -72,9 +71,11 @@ module Zimbra
 
     def modify_members(distribution_list)
       distribution_list.new_members.each do |member|
+        pp "Miembro: #{member}"
         add_member(distribution_list, member)
       end
       distribution_list.removed_members.each do |member|
+        pp "Miembro: #{member}"
         remove_member(distribution_list, member)
       end
       return true
