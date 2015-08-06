@@ -31,13 +31,16 @@ module Zimbra
 
     end
 
-    attr_accessor :id, :name, :acls, :zimbra_attrs
+    attr_accessor :id, :name, :zimbra_attrs
 
-    def initialize(id, name, acls = [], zimbra_attrs = {}, node = nil)
+    def initialize(id, name, zimbra_attrs = {}, node = nil)
       self.id = id
       self.name = name
-      self.acls = acls || []
       self.zimbra_attrs = zimbra_attrs
+    end
+
+    def acls
+      @acls ||= Zimbra::Directory.get_grants(self)
     end
 
     def delete
@@ -53,6 +56,10 @@ module Zimbra
     def rename(newname)
       fail Zimbra::HandsoapErrors::NotImplemented.new('Rename domain only via LDAP') if self.is_a?(Zimbra::Domain)
       BaseService.rename(id, newname, self.class.class_name)
+    end
+
+    def zimbra_type
+      Zimbra::Directory::TARGET_TYPES_MAPPING[self.class]
     end
 
   end
@@ -182,10 +189,9 @@ module Zimbra
           attrs = full ? get_attributes(node) : {}
           id = (node/'@id').to_s
           name = (node/'@name').to_s
-          acls = Zimbra::ACL.read(node)
 
           object = Object.const_get "Zimbra::#{class_name}"
-          object.new(id, name, acls, attrs, node)
+          object.new(id, name, attrs, node)
         end
 
         # This method run over the children of the node

@@ -9,11 +9,12 @@ module Zimbra
       def acl_name
         'usr'
       end
+
     end
 
     attr_accessor :cos_id
 
-    def initialize(id, name, acls = [], zimbra_attrs = {}, node = nil)
+    def initialize(id, name, zimbra_attrs = {}, node = nil)
       super
       self.cos_id = zimbra_attrs['zimbraCOSId']
       self.delegated_admin = zimbra_attrs['zimbraIsDelegatedAdminAccount']

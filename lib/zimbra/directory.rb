@@ -1,5 +1,12 @@
 module Zimbra
   module Directory
+
+    TARGET_TYPES_MAPPING = {
+      Zimbra::Account => 'account',
+      Zimbra::DistributionList => 'dl',
+      Zimbra::Domain => 'domain'
+    }
+
     class << self
       # Run a search over the Ldap server of Zimbra
       # query: is a valid LDAP search query
@@ -14,9 +21,18 @@ module Zimbra
         DirectoryService.search(query, type.to_sym, domain, options)
       end
 
-      def get_grants(id, type)
-        DirectoryService.get_grants(id, type)
+      def add_grant(target, acl)
+        DirectoryService.add_grant(target.id, target.zimbra_type, acl)
       end
+
+      def get_grants(target)
+        DirectoryService.get_grants(target.id, target.zimbra_type)
+      end
+
+      def revoke_grant(target, acl)
+        DirectoryService.revoke_grant(target.id, target.zimbra_type, acl)
+      end
+
     end
   end
 
@@ -30,6 +46,14 @@ module Zimbra
       account: { zimbra_type: 'accounts', node_name: 'account', class: Zimbra::Account },
       domain: { zimbra_type: 'domains', node_name: 'domain', class: Zimbra::Domain }
     }
+
+    def add_grant(id, type, acl)
+      xml = invoke("n2:GrantRightRequest") do |message|
+        Builder.add_grant(message, id, type, acl)
+      end
+      return nil if soap_fault_not_found?
+      true
+    end
 
     def search(query, type, domain, options = {})
       xml = invoke("n2:SearchDirectoryRequest") do |message|
@@ -47,6 +71,14 @@ module Zimbra
       end
       return nil if soap_fault_not_found?
       Parser.get_grants_response(xml, type)
+    end
+
+    def revoke_grant(id, type, acl)
+      xml = invoke("n2:RevokeRightRequest") do |message|
+        Builder.revoke_grant(message, id, type, acl)
+      end
+      return nil if soap_fault_not_found?
+      true
     end
 
     module Builder
@@ -67,6 +99,31 @@ module Zimbra
             c.set_attr 'type', type
           end
         end
+
+        def add_grant(message, id, type, acl)
+          message.add 'target', id do |c|
+            c.set_attr 'by', 'id'
+            c.set_attr 'type', type
+          end
+          message.add 'grantee', acl.grantee_name do |grantee|
+            grantee.set_attr 'by', 'name'
+            grantee.set_attr 'type', acl.grantee_class.acl_name
+          end
+          message.add 'right', acl.name
+        end
+
+        def revoke_grant(message, id, type, acl)
+          message.add 'target', id do |c|
+            c.set_attr 'by', 'id'
+            c.set_attr 'type', type
+          end
+          message.add 'grantee', acl.grantee_name do |grantee|
+            grantee.set_attr 'by', 'name'
+            grantee.set_attr 'type', acl.grantee_class.acl_name
+          end
+          message.add 'right', acl.name
+        end
+
       end
     end
 
@@ -79,17 +136,17 @@ module Zimbra
         end
 
         def get_grants_response(response, type)
-          opts = []
+          result = []
           grants = (response/"//n2:grant")
           grants.each do |n|
             hash = {}
-            hash[:target_id] = (n/'n2:grantee'/'@id').to_s
-            hash[:target_class] = Zimbra::ACL::TARGET_MAPPINGS[(n/'n2:grantee'/'@type').to_s]
-            hash[:target_name] = (n/'n2:grantee'/'@name').to_s
+            hash[:grantee_id] = (n/'n2:grantee'/'@id').to_s
+            hash[:grantee_class] = Zimbra::ACL::TARGET_MAPPINGS[(n/'n2:grantee'/'@type').to_s]
+            hash[:grantee_name] = (n/'n2:grantee'/'@name').to_s
             hash[:name] = (n/'n2:right').to_s
-            opts << Zimbra::ACL.new(hash)
+            result << Zimbra::ACL.new(hash)
           end
-          opts
+          result
         end
 
         # This just call the parser_response method of the object

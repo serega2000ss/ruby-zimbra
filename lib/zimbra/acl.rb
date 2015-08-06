@@ -28,31 +28,31 @@ module Zimbra
       end
 
       def from_s(value)
-        target_id, target_name, name = value.split(' ')
-        target_class = TARGET_MAPPINGS[target_name]
+        grantee_id, grantee_name, name = value.split(' ')
+        grantee_class = TARGET_MAPPINGS[grantee_name]
         return "Target object not found for acl #{value}" if target_class.nil?
-        new(target_id: target_id, target_class: target_class, name: name)
+        new(grantee_id: grantee_id, grantee_class: grantee_class, name: name)
       end
     end
 
-    attr_accessor :target_id, :target_class, :name, :target_name
+    attr_accessor :grantee_id, :grantee_class, :name, :grantee_name
 
     def initialize(options = {})
-      if options[:target]
-        self.target_id = options[:target].id
-        self.target_class = options[:target].class
-        self.target_name = options[:target].name unless options[:target].name.nil?
+      if options[:grantee]
+        self.grantee_id = options[:grantee].id
+        self.grantee_class = options[:grantee].class
+        self.grantee_name = options[:grantee].grantee_name unless options[:grantee].grantee_name.nil?
       else
-        self.target_id = options[:target_id]
-        self.target_class = options[:target_class]
-        self.target_name = options[:target_name] unless options[:target_name].nil?
+        self.grantee_id = options[:grantee_id]
+        self.grantee_class = options[:grantee_class]
+        self.grantee_name = options[:grantee_name] unless options[:grantee_name].nil?
       end
       self.name = options[:name]
     end
 
     def to_zimbra_acl_value
-      id = target_id
-      type = target_class.acl_name
+      id = grantee_id
+      type = grantee_class.acl_name
       "#{id} #{type} #{name}"
     end
 

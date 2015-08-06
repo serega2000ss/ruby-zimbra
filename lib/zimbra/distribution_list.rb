@@ -7,9 +7,9 @@ module Zimbra
     end
 
     attr_accessor :id, :name, :admin_console_ui_components, :admin_group
-    attr_accessor :members, :restricted, :acls, :display_name, :cn, :mail
+    attr_accessor :members, :restricted, :display_name, :cn, :mail
 
-    def initialize(id, name, acls = [], zimbra_attrs = {}, node = nil)
+    def initialize(id, name, zimbra_attrs = {}, node = nil)
       super
       @cn = zimbra_attrs['cn']
       @display_name = zimbra_attrs['displayName']
