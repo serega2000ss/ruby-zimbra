@@ -29,6 +29,16 @@ module Zimbra
         BaseService.create(name, attrs, class_name)
       end
 
+      def zimbra_attrs_to_load=(array)
+        fail(ArgumentError, 'Must be an array') unless array.is_a?Array
+        @zimbra_attrs_to_load = array
+      end
+
+      def zimbra_attrs_to_load
+        return [] if @zimbra_attrs_to_load.nil?
+        @zimbra_attrs_to_load
+      end
+
     end
 
     attr_accessor :id, :name, :zimbra_attrs
@@ -186,11 +196,12 @@ module Zimbra
         end
 
         def response(class_name, node, full = true)
-          attrs = full ? get_attributes(node) : {}
+          object = Object.const_get "Zimbra::#{class_name}"
+          names = full ? attributes_names(node) : object.zimbra_attrs_to_load
+          attrs = get_attributes(node, names)
+
           id = (node/'@id').to_s
           name = (node/'@name').to_s
-
-          object = Object.const_get "Zimbra::#{class_name}"
           object.new(id, name, attrs, node)
         end
 
@@ -198,14 +209,14 @@ module Zimbra
         # and for each one gets the value of the n attribute
         # "<a n=\"zimbraMailAlias\">restringida@zbox.cl</a>"
         # would be zimbraMailAlias
-        def get_attributes_names(node)
+        def attributes_names(node)
           (node/'n2:a').map { |e| (e/'@n').to_s }.uniq
         end
 
-        def get_attributes(node)
+        def get_attributes(node, names = [])
           attr_hash = {}
-          attributes = get_attributes_names node
-          attributes.each do |attr|
+          return attr_hash if names.empty?
+          names.each do |attr|
             attr_hash[attr] = Zimbra::A.read node, attr
           end
           attr_hash

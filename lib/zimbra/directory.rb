@@ -155,7 +155,7 @@ module Zimbra
         def object_list_response(node, type)
           node = clean_node node
           class_name = ZIMBRA_TYPES_HASH[type][:class].name.gsub(/Zimbra::/, '')
-          Zimbra::BaseService::Parser.response(class_name, node, true)
+          Zimbra::BaseService::Parser.response(class_name, node, false)
         end
 
         # This method is to erase all others nodes from document
