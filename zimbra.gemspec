@@ -4,15 +4,15 @@ $:.push File.expand_path("../lib", __FILE__)
 require "zimbra/version"
 
 Gem::Specification.new do |s|
-  s.name = "zimbra"
+  s.name = "zimbra-soap-api"
   s.version = Zimbra::VERSION
 
-  s.authors = ["Derek Kastner","Matt Wilson","Philippe Green","Greenview Data, Inc."]
-  s.date = '2009-11-18'
+  s.authors = ["Derek Kastner","Matt Wilson","Philippe Green","Greenview Data, Inc.","Patricio Bruna"]
+  s.date = '2015-08-07'
   s.description = 'Interface to Zimbra management API'
   s.summary = %q{SOAP Interface to Zimbra}
   s.email = %q{development@greenviewdata.com}
-  s.homepage = "https://github.com/gdi/ruby-zimbra"
+  s.homepage = "https://github.com/pbruna/ruby-zimbra"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- spec/*`.split("\n")
