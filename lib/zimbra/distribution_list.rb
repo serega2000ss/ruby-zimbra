@@ -15,7 +15,7 @@ module Zimbra
       @display_name = zimbra_attrs['displayName']
       self.admin_group = zimbra_attrs['zimbraIsAdminGroup']
       @members = Zimbra::DistributionListService::Parser.get_members node
-      @restricted = !acls.nil?
+      @restricted = acls.any?
       @original_members = self.members.dup
     end
 
