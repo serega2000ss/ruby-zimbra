@@ -5,7 +5,8 @@ module Zimbra
     NAMESPACES = {
       'Domain' => 'domain',
       'Account' => 'account',
-      'DistributionList' => 'dl'
+      'DistributionList' => 'dl',
+      'Cos' => 'cos'
     }
 
     class << self
@@ -77,7 +78,8 @@ module Zimbra
   # Doc Placeholder
   class BaseService < HandsoapService
     def all(class_name)
-      request_name = "n2:GetAll#{class_name}sRequest"
+      class_name_plural = class_name.downcase == 'cos' ? class_name : "#{class_name}s"
+      request_name = "n2:GetAll#{class_name_plural}Request"
       xml = invoke(request_name)
       Parser.get_all_response(class_name, xml)
     end
