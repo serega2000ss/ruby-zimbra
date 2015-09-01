@@ -14,7 +14,6 @@ module Zimbra
       report_error(response) if http_error?
     end
     def report_error(response)
-      puts response
       message = response.body.scan(/<faultstring>(.*)<\/faultstring>/).first.first
       raise SOAPFault, message
     end
