@@ -1,6 +1,7 @@
+# Docs
 module Zimbra
+  # Docs
   module Directory
-
     TARGET_TYPES_MAPPING = {
       Zimbra::Account => 'account',
       Zimbra::DistributionList => 'dl',
@@ -9,6 +10,10 @@ module Zimbra
     }
 
     class << self
+      def count_objects(type, domain_name = nil)
+        DirectoryService.count_objects(type, domain_name)
+      end
+
       # Run a search over the Ldap server of Zimbra
       # query: is a valid LDAP search query
       # types: a comma separated string of types of objects to look for
@@ -33,32 +38,42 @@ module Zimbra
       def revoke_grant(target, acl)
         DirectoryService.revoke_grant(target.id, target.zimbra_type, acl)
       end
-
     end
   end
 
+  # Docs
   class DirectoryService < HandsoapService
     # This are the type off types (objects) that Zimbra has
     # "distributionlists,aliases,accounts,dynamicgroups,resources,domains"
     ZIMBRA_TYPES_HASH = {
-      distribution_list: { zimbra_type: 'distributionlists', node_name: 'dl', class: Zimbra::DistributionList },
-      distributionlist: { zimbra_type: 'distributionlists', node_name: 'dl', class: Zimbra::DistributionList },
-      #alias: { zimbra_type: 'aliases', node_name: 'alias', class: Zimbra::Alias },
-      account: { zimbra_type: 'accounts', node_name: 'account', class: Zimbra::Account },
-      domain: { zimbra_type: 'domains', node_name: 'domain', class: Zimbra::Domain },
+      distribution_list: { zimbra_type: 'distributionlists',
+                           node_name: 'dl', class: Zimbra::DistributionList },
+      distributionlist: { zimbra_type: 'distributionlists',
+                          node_name: 'dl', class: Zimbra::DistributionList },
+      account: { zimbra_type: 'accounts',
+                 node_name: 'account', class: Zimbra::Account },
+      domain: { zimbra_type: 'domains',
+                node_name: 'domain', class: Zimbra::Domain },
       cos: { zimbra_type: 'coses', node_name: 'cos', class: Zimbra::Cos }
     }
 
     def add_grant(id, type, acl)
-      xml = invoke("n2:GrantRightRequest") do |message|
+      _xml = invoke('n2:GrantRightRequest') do |message|
         Builder.add_grant(message, id, type, acl)
       end
       return nil if soap_fault_not_found?
       true
     end
 
+    def count_objects(type, domain_name)
+      xml = invoke('n2:CountObjectsRequest') do |message|
+        Builder.count_objects(message, type, domain_name)
+      end
+      Parser.count_objects_response(xml, type, domain_name)
+    end
+
     def search(query, type, domain, options = {})
-      xml = invoke("n2:SearchDirectoryRequest") do |message|
+      xml = invoke('n2:SearchDirectoryRequest') do |message|
         Builder.search_directory(message, query, type, domain, options)
       end
       return nil if soap_fault_not_found?
@@ -76,15 +91,24 @@ module Zimbra
     end
 
     def revoke_grant(id, type, acl)
-      xml = invoke("n2:RevokeRightRequest") do |message|
+      _xml = invoke('n2:RevokeRightRequest') do |message|
         Builder.revoke_grant(message, id, type, acl)
       end
       return nil if soap_fault_not_found?
       true
     end
 
+    # Docs
     module Builder
       class << self
+        def count_objects(message, type, domain_name)
+          message.set_attr 'type', type
+          return unless domain_name
+          message.add 'domain', domain_name do |c|
+            c.set_attr 'by', 'name'
+          end
+        end
+
         def search_directory(message, query, type, domain, options)
           message.set_attr 'types', ZIMBRA_TYPES_HASH[type][:zimbra_type]
           message.set_attr 'query', query
@@ -131,6 +155,16 @@ module Zimbra
 
     module Parser
       class << self
+        def count_objects_response(response, type, domain_name)
+          return {count: 0, type: type, domain: domain_name} unless response
+          result = (response/'//n2:CountObjectsResponse')
+          {
+            count: (result/'@num').to_i,
+            type: (result/'@type').to_s,
+            domain: domain_name
+          }
+        end
+
         def search_directory_response(response, type)
           # look for the node given by the type
           items = (response/"//n2:#{ZIMBRA_TYPES_HASH[type][:node_name]}")
