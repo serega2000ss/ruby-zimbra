@@ -77,6 +77,9 @@ module Zimbra
         Builder.search_directory(message, query, type, domain, options)
       end
       return nil if soap_fault_not_found?
+      if options[:count_only]
+        return Parser.search_directory_response_count(xml, type, domain)
+      end
       Parser.search_directory_response(xml, type)
     end
 
@@ -117,6 +120,7 @@ module Zimbra
           message.set_attr('offset', options[:offset]) if options[:offset]
           message.set_attr('sort_by', options[:sort_by]) if options[:sort_by]
           message.set_attr('sort_ascending', options[:sort_ascending]) if options[:sort_ascending]
+          message.set_attr('countOnly', 1) if options[:count_only]
         end
 
         def get_grants(message, id, type)
@@ -169,6 +173,16 @@ module Zimbra
           # look for the node given by the type
           items = (response/"//n2:#{ZIMBRA_TYPES_HASH[type][:node_name]}")
           items.map { |i| object_list_response(i, type) }
+        end
+
+        def search_directory_response_count(response, type, domain)
+          return {count: 0, type: type, domain: domain} unless response
+          result = (response/'//n2:SearchDirectoryResponse')
+          {
+            count: (result/'@num').to_i,
+            type: type,
+            domain: domain
+          }
         end
 
         def get_grants_response(response, type)
