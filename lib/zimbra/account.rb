@@ -1,7 +1,6 @@
 module Zimbra
   class Account < Zimbra::Base
     class << self
-
       def create(name, password, attributes = {})
         AccountService.create(name, password, attributes)
       end
@@ -9,10 +8,13 @@ module Zimbra
       def acl_name
         'usr'
       end
-
     end
 
     attr_accessor :cos_id
+
+    def add_alias(alias_name)
+      AccountService.add_alias(self, alias_name)
+    end
 
     def initialize(id, name, zimbra_attrs = {}, node = nil)
       super
@@ -40,6 +42,10 @@ module Zimbra
       @mailbox ||= AccountService.mailbox(id)
     end
 
+    def remove_alias(alias_name)
+      AccountService.remove_alias(self, alias_name)
+    end
+
     def save
       AccountService.modify(self)
     end
@@ -47,11 +53,6 @@ module Zimbra
     def set_password(new_password)
       AccountService.set_password(id, new_password)
     end
-
-    def add_alias(alias_name)
-      AccountService.add_alias(self, alias_name)
-    end
-
   end
 
   # Doc Placeholder
@@ -75,13 +76,21 @@ module Zimbra
       xml = invoke('n2:SetPasswordRequest') do |message|
         Builder.set_password(message, id, new_password)
       end
-      true
+      xml.nil? ? nil : true
     end
 
-    def add_alias(account,alias_name)
+    def add_alias(account, alias_name)
       xml = invoke('n2:AddAccountAliasRequest') do |message|
-        Builder.add_alias(message,account.id,alias_name)
+        Builder.add_alias(message, account.id, alias_name)
       end
+      xml.nil? ? nil : true
+    end
+
+    def remove_alias(account, alias_name)
+      xml = invoke('n2:RemoveAccountAliasRequest') do |message|
+        Builder.remove_alias(message, account.id, alias_name)
+      end
+      xml.nil? ? nil : true
     end
 
     # Doc Placeholder
@@ -106,9 +115,14 @@ module Zimbra
           message.set_attr 'newPassword', new_password
         end
 
-        def add_alias(message,id,alias_name)
-          message.add 'id', id
-          message.add 'alias', alias_name
+        def add_alias(message, id, alias_name)
+          message.set_attr 'id', id
+          message.set_attr 'alias', alias_name
+        end
+
+        def remove_alias(message, id, alias_name)
+          message.set_attr 'id', id
+          message.set_attr 'alias', alias_name
         end
       end
     end
