@@ -30,6 +30,10 @@ module Zimbra
       @delegated_admin
     end
 
+    def delegated_auth_token(duration = 3600)
+      AccountService.delegated_auth_token(id, duration)
+    end
+
     def mailbox_size
       mailbox[:size]
     end
@@ -63,6 +67,13 @@ module Zimbra
       end
       class_name = Zimbra::Account.class_name
       Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
+    end
+
+    def delegated_auth_token(id, duration)
+      xml = invoke('n2:DelegateAuthRequest') do |message|
+        Builder.delegated_auth_token(message, id, duration)
+      end
+      Parser.delegated_auth_token_response(xml)
     end
 
     def mailbox(id)
@@ -104,6 +115,13 @@ module Zimbra
           end
         end
 
+        def delegated_auth_token(message, id, duration)
+          message.set_attr 'duration', duration
+          message.add 'account', id do |c|
+            c.set_attr 'by', 'id'
+          end
+        end
+
         def mailbox(message, id)
           message.add 'mbox' do |c|
             c.set_attr 'id', id
@@ -135,6 +153,11 @@ module Zimbra
             store_id: (result/'@mbxid').to_i
           }
         end
+
+        def delegated_auth_token_response(response)
+          (response/'//n2:DelegateAuthResponse/n2:authToken').to_s
+        end
+
       end
     end
   end
