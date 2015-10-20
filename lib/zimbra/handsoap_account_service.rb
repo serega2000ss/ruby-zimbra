@@ -11,7 +11,7 @@ module Zimbra
       doc.add_namespace 'n2', "urn:zimbraMail"
     end
   end
-  
+
   module HandsoapAccountUriOverrides
     def uri
       Zimbra.account_api_url
