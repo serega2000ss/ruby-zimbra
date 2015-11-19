@@ -121,6 +121,7 @@ module Zimbra
           message.set_attr('sort_by', options[:sort_by]) if options[:sort_by]
           message.set_attr('sort_ascending', options[:sort_ascending]) if options[:sort_ascending]
           message.set_attr('countOnly', 1) if options[:count_only]
+          message.set_attr('maxResults', options[:max_results]) if options[:max_results]
         end
 
         def get_grants(message, id, type)
