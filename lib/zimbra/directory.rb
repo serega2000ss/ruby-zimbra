@@ -22,6 +22,7 @@ module Zimbra
       # options[:offset]
       # options[:sort_by]
       # options[:sort_ascending]: 1=true , 0=false
+      # options[:atts]: List of attributes
       def search(query = '', type: 'account', domain: nil, **options)
         options[:limit] ||= 25
         DirectoryService.search(query, type.to_sym, domain, options)
@@ -121,7 +122,7 @@ module Zimbra
           message.set_attr('sortBy', options[:sort_by]) if options[:sort_by]
           message.set_attr('sortAscending', options[:sort_ascending]) if options[:sort_ascending]
           message.set_attr('countOnly', 1) if options[:count_only]
-          message.set_attr('maxResults', options[:max_results]) if options[:max_results]
+          message.set_attr('attrs', options[:attrs]) if options[:attrs]
         end
 
         def get_grants(message, id, type)
