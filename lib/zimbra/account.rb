@@ -6,6 +6,10 @@ module Zimbra
         AccountService.create(name, password, attributes)
       end
 
+      def mailbox(account_id)
+        AccountService.mailbox(account_id)
+      end
+
       def acl_name
         'usr'
       end
