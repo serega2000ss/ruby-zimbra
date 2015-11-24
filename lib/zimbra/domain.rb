@@ -4,6 +4,11 @@ module Zimbra
       def acl_name
         'domain'
       end
+
+      def count_accounts(domain_id)
+        DomainService.count_accounts(domain_id)
+      end
+
     end
 
     def count_accounts
