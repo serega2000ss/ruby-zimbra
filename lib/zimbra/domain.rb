@@ -33,8 +33,6 @@ module Zimbra
 
     class Builder
       class << self
-        
-
         def count_accounts(message, id)
           message.add 'domain', id do |c|
             c.set_attr 'by', 'id'

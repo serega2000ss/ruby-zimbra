@@ -118,8 +118,8 @@ module Zimbra
           message.set_attr('domain', domain) if domain
           message.set_attr('limit', options[:limit]) if options[:limit]
           message.set_attr('offset', options[:offset]) if options[:offset]
-          message.set_attr('sort_by', options[:sort_by]) if options[:sort_by]
-          message.set_attr('sort_ascending', options[:sort_ascending]) if options[:sort_ascending]
+          message.set_attr('sortBy', options[:sort_by]) if options[:sort_by]
+          message.set_attr('sortAscending', options[:sort_ascending]) if options[:sort_ascending]
           message.set_attr('countOnly', 1) if options[:count_only]
           message.set_attr('maxResults', options[:max_results]) if options[:max_results]
         end
@@ -171,9 +171,15 @@ module Zimbra
         end
 
         def search_directory_response(response, type)
+          node = (response/'//n2:SearchDirectoryResponse')
           # look for the node given by the type
           items = (response/"//n2:#{ZIMBRA_TYPES_HASH[type][:node_name]}")
-          items.map { |i| object_list_response(i, type) }
+          results = items.map { |i| object_list_response(i, type) }
+          {
+            search_total: (node/'@searchTotal').to_i,
+            more: ((node/'@more').to_s == '1' ? true : false),
+            results: results
+          }
         end
 
         def search_directory_response_count(response, type, domain)

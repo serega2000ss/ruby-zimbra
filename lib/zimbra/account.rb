@@ -1,6 +1,7 @@
 module Zimbra
   class Account < Zimbra::Base
     class << self
+
       def create(name, password, attributes = {})
         AccountService.create(name, password, attributes)
       end
@@ -62,7 +63,7 @@ module Zimbra
   # Doc Placeholder
   class AccountService < HandsoapService
     def create(name, password, attributes)
-      xml = invoke("n2:CreateAccountRequest") do |message|
+      xml = invoke('n2:CreateAccountRequest') do |message|
         Builder.create(message, name, password, attributes)
       end
       class_name = Zimbra::Account.class_name
