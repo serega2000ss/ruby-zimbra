@@ -1,3 +1,3 @@
 module Zimbra
-  VERSION = '0.7.24'
+  VERSION = '0.7.26'
 end

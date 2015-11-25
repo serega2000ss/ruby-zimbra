@@ -9,6 +9,8 @@ module Zimbra
       Zimbra::Cos => 'cos'
     }
 
+    SEARCH_LIMIT = 20
+
     class << self
       def count_objects(type, domain_name = nil)
         DirectoryService.count_objects(type, domain_name)
@@ -22,9 +24,10 @@ module Zimbra
       # options[:offset]
       # options[:sort_by]
       # options[:sort_ascending]: 1=true , 0=false
-      # options[:atts]: List of attributes
+      # options[:attrs]: List of attributes
+      # options[:max_results]: Max Results to Fail
       def search(query = '', type: 'account', domain: nil, **options)
-        options[:limit] ||= 25
+        options[:limit] ||= Zimbra::Directory::SEARCH_LIMIT
         DirectoryService.search(query, type.to_sym, domain, options)
       end
 
@@ -123,6 +126,7 @@ module Zimbra
           message.set_attr('sortAscending', options[:sort_ascending]) if options[:sort_ascending]
           message.set_attr('countOnly', 1) if options[:count_only]
           message.set_attr('attrs', options[:attrs]) if options[:attrs]
+          message.set_attr('maxResults', options[:max_results]) if options[:max_results]
         end
 
         def get_grants(message, id, type)
