@@ -12,6 +12,10 @@ module Zimbra
 
     def on_create_document(doc)
       request_namespaces(doc)
+      header = doc.find("Header")
+      header.add "n1:context" do |s|
+        s.add "n1:session"
+      end
     end
     def on_response_document(doc)
       response_namespaces(doc)
@@ -21,7 +25,10 @@ module Zimbra
       xml = invoke('n2:AuthRequest') do |message|
         Builder.auth(message, username, password)
       end
-      [Parser.auth_token(xml), Parser.session_lifetime(xml)]
+      [ Parser.auth_token(xml), 
+        Parser.session_lifetime(xml),
+        Parser.session_id(xml)
+      ]
     end
 
     class Builder
@@ -39,6 +46,9 @@ module Zimbra
         end
         def session_lifetime(response)
           (response/'//n2:lifetime').to_s
+        end
+        def session_id(response)
+          (response/'//n2:session').to_s
         end
       end
     end

@@ -66,6 +66,12 @@ module Zimbra
       header.add "n1:context" do |s|
         s.set_attr "env:mustUnderstand", "0"
         s.add "n1:authToken", Zimbra.auth_token
+        s.add "n1:session" do |i| 
+          i.set_attr 'id', Zimbra.session_id
+        end
+        s.add "n1:sessionId" do |i| 
+          i.set_attr 'id', Zimbra.session_id
+        end
       end
     end
     def on_response_document(doc)
