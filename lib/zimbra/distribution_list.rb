@@ -6,6 +6,10 @@ module Zimbra
       end
     end
 
+    # This means everyone can send emails to this list
+    # https://wiki.zimbra.com/wiki/Enabling_and_administering_the_Zimbra_milter
+    PUB_GRANTEE_ID = '99999999-9999-9999-9999-999999999999'
+
     attr_accessor :id, :name, :admin_console_ui_components, :admin_group
     attr_accessor :members, :restricted, :display_name, :cn, :mail
 
@@ -15,7 +19,7 @@ module Zimbra
       @display_name = zimbra_attrs['displayName']
       self.admin_group = zimbra_attrs['zimbraIsAdminGroup']
       @members = Zimbra::DistributionListService::Parser.get_members node
-      @restricted = acls.any?
+      @restricted = acls.reject { |a| a.grantee_id == PUB_GRANTEE_ID }.any?
       @original_members = self.members.dup
     end
 
