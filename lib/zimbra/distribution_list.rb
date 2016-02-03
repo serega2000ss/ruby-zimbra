@@ -33,6 +33,10 @@ module Zimbra
       DistributionListService.modify_members(self)
     end
 
+    def update_members(members_ary = [])
+      modify_members members_ary
+    end
+
     def members
       @members ||= []
     end
@@ -60,6 +64,14 @@ module Zimbra
       DistributionListService.add_alias(self,alias_name)
     end
 
+    def add_members(members_emails)
+      DistributionListService.add_members(self, [members_emails].flatten)
+    end
+
+    def remove_members(members_emails)
+      DistributionListService.remove_members(self, [members_emails].flatten)
+    end
+
     def save
       DistributionListService.modify(self)
     end
@@ -83,16 +95,18 @@ module Zimbra
       return true
     end
 
-    def add_member(distribution_list, member)
+    def add_members(distribution_list, members)
       xml = invoke("n2:AddDistributionListMemberRequest") do |message|
-        Builder.add_member(message, distribution_list.id, member)
+        Builder.add_members(message, distribution_list.id, members)
       end
+      DistributionList.find_by_id(distribution_list.id) if xml
     end
 
-    def remove_member(distribution_list, member)
+    def remove_members(distribution_list, members)
       xml = invoke("n2:RemoveDistributionListMemberRequest") do |message|
-        Builder.remove_member(message, distribution_list.id, member)
+        Builder.remove_members(message, distribution_list.id, members)
       end
+      DistributionList.find_by_id(distribution_list.id) if xml
     end
 
     def add_alias(distribution_list,alias_name)
@@ -117,14 +131,18 @@ module Zimbra
           A.inject(message, 'zimbraIsAdminGroup', (distribution_list.admin_group? ? 'TRUE' : 'FALSE'))
         end
 
-        def add_member(message, distribution_list_id, member)
+        def add_members(message, distribution_list_id, members)
           message.add 'id', distribution_list_id
-          message.add 'dlm', member
+          members.each do |member|
+            message.add 'dlm', member
+          end
         end
 
-        def remove_member(message, distribution_list_id, member)
+        def remove_members(message, distribution_list_id, members)
           message.add 'id', distribution_list_id
-          message.add 'dlm', member
+          members.each do |member|
+            message.add 'dlm', member
+          end
         end
 
         def add_alias(message,id,alias_name)
