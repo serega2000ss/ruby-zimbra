@@ -65,7 +65,7 @@ module Zimbra
     def auth_token
       @@auth_token
     end
-    
+
     def session_id
       @@session_id
     end
