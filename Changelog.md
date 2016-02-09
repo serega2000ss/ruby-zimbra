@@ -1,3 +1,9 @@
+### v 0.7.30
+
+#### Domain
+
+* Added method `set_max_accounts`, to enable account quotas per domain
+
 ### v 0.7.29
 
 #### DistributionList

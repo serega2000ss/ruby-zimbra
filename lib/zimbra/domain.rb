@@ -15,6 +15,14 @@ module Zimbra
       DomainService.count_accounts(id)
     end
 
+    # TODO: Maybe refactor to a better name
+    # max_accounts is an integer
+    # cos_max_accounts is an Arrays of 'COS_ids:total', like
+    # 0ae7404d-4891-4ea4-a2d5-620a19b32b73:34 (34 is the total)
+    def set_max_accounts(max_accounts = 0, cos_max_accounts = [])
+      DomainService.set_max_accounts(id, max_accounts, cos_max_accounts)
+    end
+
     def save
       DomainService.modify(self)
     end
@@ -36,11 +44,31 @@ module Zimbra
       end
     end
 
+    def set_max_accounts(id, max_accounts, cos_max_accounts)
+      xml = invoke('n2:ModifyDomainRequest') do |message|
+        Builder.set_max_accounts(message, id, max_accounts, cos_max_accounts)
+      end
+      class_name = Zimbra::Domain.class_name
+      Zimbra::BaseService::Parser.response(class_name, xml/'//n2:domain')
+    end
+
     class Builder
       class << self
         def count_accounts(message, id)
           message.add 'domain', id do |c|
             c.set_attr 'by', 'id'
+          end
+        end
+
+        def set_max_accounts(message, id, max_accounts, cos_max_accounts)
+          message.add 'id', id
+          message.add 'a', max_accounts do |c|
+            c.set_attr 'n', 'zimbraDomainMaxAccounts'
+          end
+          cos_max_accounts.each do |cos|
+            message.add 'a', cos do |c|
+              c.set_attr 'n', 'zimbraDomainCOSMaxAccounts'
+            end
           end
         end
 
