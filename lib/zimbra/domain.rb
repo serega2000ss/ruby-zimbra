@@ -62,13 +62,15 @@ module Zimbra
 
         def set_max_accounts(message, id, max_accounts, cos_max_accounts)
           message.add 'id', id
-          message.add 'a', max_accounts do |c|
-            c.set_attr 'n', 'zimbraDomainMaxAccounts'
-          end
+          A.inject(message, 'zimbraDomainMaxAccounts', max_accounts)
+          # message.add 'a', max_accounts do |c|
+          #   c.set_attr 'n', 'zimbraDomainMaxAccounts'
+          # end
           cos_max_accounts.each do |cos|
-            message.add 'a', cos do |c|
-              c.set_attr 'n', 'zimbraDomainCOSMaxAccounts'
-            end
+            A.inject(message, 'zimbraDomainCOSMaxAccounts', cos)
+            # message.add 'a', cos do |c|
+            #   c.set_attr 'n', 'zimbraDomainCOSMaxAccounts'
+            # end
           end
         end
 
