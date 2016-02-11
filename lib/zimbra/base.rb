@@ -146,7 +146,14 @@ module Zimbra
         def create(message, name, attributes = {})
           message.add 'name', name
           attributes.each do |k,v|
-            A.inject(message, k, v)
+            # This is to be used if the value we are passing is an Array,
+            # for example an account can have many 'mail' LDAP attributes,
+            # or the Domain many zimbraDomainCOSMaxAccounts
+            if v.is_a?Array
+              v.each { |e| A.inject(message, k, e) }
+            else
+              A.inject(message, k, v)
+            end
           end
         end
 
