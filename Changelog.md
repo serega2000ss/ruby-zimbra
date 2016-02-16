@@ -1,3 +1,14 @@
+## v 0.7.30
+
+### Added
+
+#### Accounts
+
+* Enable Account Archiving: `enable_archive(cos_id, archive_account_name)`
+* Disabled Account Archiving: `disable_archive()`
+* Is account archiving enabled?: `archive_enabled?`
+* What is the archive mailbox: `archive_account`
+
 ### v 0.7.30
 
 #### Domain

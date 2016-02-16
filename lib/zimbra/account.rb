@@ -17,8 +17,34 @@ module Zimbra
 
     attr_accessor :cos_id
 
+
     def add_alias(alias_name)
       AccountService.add_alias(self, alias_name)
+    end
+
+    def archive_account
+      load_archive_info
+      @archive_account
+    end
+
+    def archive_enabled
+      load_archive_info
+      @archive_enabled
+    end
+
+    def archive_enabled?
+      archive_enabled == 'TRUE'
+    end
+
+    def enable_archive(cos_id = nil, archive_name = nil)
+      return true if archive_enabled?
+      archive_name ||= archive_account
+      AccountService.enable_archive(self, cos_id, archive_name)
+    end
+
+    def disable_archive()
+      return true unless archive_enabled?
+      AccountService.disable_archive(self)
     end
 
     def initialize(id, name, zimbra_attrs = {}, node = nil)
@@ -55,6 +81,15 @@ module Zimbra
       AccountService.remove_alias(self, alias_name)
     end
 
+    def load_archive_info
+      zimbra_attrs_to_load = Zimbra::Account.zimbra_attrs_to_load
+      Zimbra::Account.zimbra_attrs_to_load = %w(zimbraArchiveEnabled zimbraArchiveAccount)
+      account = Zimbra::Directory.search("zimbraId=#{id}")[:results].first
+      @archive_enabled = account.zimbra_attrs['zimbraArchiveEnabled']
+      @archive_account = account.zimbra_attrs['zimbraArchiveAccount']
+      Zimbra::Account.zimbra_attrs_to_load = zimbra_attrs_to_load
+    end
+
     def save
       AccountService.modify(self)
     end
@@ -74,11 +109,31 @@ module Zimbra
       Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
     end
 
+    def enable_archive(account, cos_id, archive_name)
+      # Only create the archive mbx if it does not exists
+      create_archive = account.archive_account.nil? ? true : false
+      xml = invoke('n2:EnableArchiveRequest') do |message|
+        if create_archive
+          Builder.create_archive(message, account, cos_id, archive_name)
+        else
+          Builder.enable_archive(message, account)
+        end
+      end
+      xml.raw_xml.nil? ? true : false
+    end
+
     def delegated_auth_token(id, duration)
       xml = invoke('n2:DelegateAuthRequest') do |message|
         Builder.delegated_auth_token(message, id, duration)
       end
       Parser.delegated_auth_token_response(xml)
+    end
+
+    def disable_archive(account)
+      xml = invoke('n2:DisableArchiveRequest') do |message|
+        Builder.disable_archive(message, account)
+      end
+      xml.raw_xml.nil? ? true : false
     end
 
     def mailbox(id)
@@ -120,9 +175,38 @@ module Zimbra
           end
         end
 
+        def create_archive(message, account, cos_id, archive_name)
+          message.add 'account', account.id do |c|
+            c.set_attr 'by', 'id'
+          end
+          message.add 'archive' do |c|
+            c.set_attr 'create', 1
+            c.add('name', archive_name) if archive_name
+            c.add 'cos', cos_id do |c|
+              c.set_attr 'by', 'id'
+            end
+          end
+        end
+
         def delegated_auth_token(message, id, duration)
           message.set_attr 'duration', duration
           message.add 'account', id do |c|
+            c.set_attr 'by', 'id'
+          end
+        end
+
+        def enable_archive(message, account)
+          message.add 'account', account.id do |c|
+            c.set_attr 'by', 'id'
+          end
+          message.add 'archive' do |c|
+            c.set_attr 'create', 0
+            c.add 'name', account.archive_account
+          end
+        end
+
+        def disable_archive(message, account)
+          message.add 'account', account.id do |c|
             c.set_attr 'by', 'id'
           end
         end
