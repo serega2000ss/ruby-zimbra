@@ -22,6 +22,8 @@ require 'zimbra/ext/string'
 require 'zimbra/ext/handsoap_curb_driver'
 require 'zimbra/extra/date_helpers'
 
+require 'ostruct'
+
 # Manages a Zimbra SOAP session.  Offers ability to set the endpoint URL, log in, and enable debugging.
 module Zimbra
   class << self

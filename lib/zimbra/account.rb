@@ -18,11 +18,19 @@ module Zimbra
     attr_accessor :cos_id
 
 
+    # Returns an Array of Hashs
+    # each hash has DL information
+    def memberships
+      AccountService.memberships(self)
+    end
+
     def add_alias(alias_name)
       AccountService.add_alias(self, alias_name)
     end
 
     def archive_account
+      # We ask the LDAP because SOAP doest not invalidate
+      # the cache
       load_archive_info
       @archive_account
     end
@@ -143,6 +151,13 @@ module Zimbra
       Parser.mailbox_response(xml)
     end
 
+    def memberships(account)
+      xml = invoke('n2:GetAccountMembershipRequest') do |message|
+        Builder.memberships(message, account)
+      end
+      Parser.memberships_response(xml)
+    end
+
     def set_password(id, new_password)
       xml = invoke('n2:SetPasswordRequest') do |message|
         Builder.set_password(message, id, new_password)
@@ -211,6 +226,12 @@ module Zimbra
           end
         end
 
+        def memberships(message, account)
+          message.add 'account', account.id do |c|
+            c.set_attr 'by', 'id'
+          end
+        end
+
         def mailbox(message, id)
           message.add 'mbox' do |c|
             c.set_attr 'id', id
@@ -245,6 +266,16 @@ module Zimbra
 
         def delegated_auth_token_response(response)
           (response/'//n2:DelegateAuthResponse/n2:authToken').to_s
+        end
+
+        def memberships_response(response)
+          return [] if (response/'//n2:dl').empty?
+          (response/'//n2:dl').map do |dl|
+            name = (dl/'@name').to_s
+            id = (dl/'@id').to_s
+            via = (dl/'@via').to_s
+            OpenStruct.new(id: id, name: name, via: via)
+          end
         end
 
       end

@@ -1,4 +1,13 @@
-## v 0.7.30
+## v 0.7.4.1
+
+### Added
+
+#### Accounts
+
+* `memberships` return an Array of Structs with information of the DLs to which
+the account belongs_to: `GetAccountMembership`
+
+## v 0.7.4
 
 ### Added
 
