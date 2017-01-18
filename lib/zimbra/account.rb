@@ -99,7 +99,11 @@ module Zimbra
     end
 
     def save
-      AccountService.modify(self)
+      AccountService.modify(id, self)
+    end
+
+    def update_zimbra_attrs(attrs_names)
+      AccountService.update_zimbra_attrs(id, self, attrs_names)
     end
 
     def set_password(new_password)
@@ -115,6 +119,13 @@ module Zimbra
       end
       class_name = Zimbra::Account.class_name
       Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
+    end
+
+    def update_zimbra_attrs(id, account, attrs_names)
+      xml = invoke("n2:ModifyAccountRequest") do |message|
+        Builder.update_zimbra_attrs(message, id, account, attrs_names)
+      end
+      xml.raw_xml.nil? ? true : false
     end
 
     def enable_archive(account, cos_id, archive_name)
@@ -229,6 +240,13 @@ module Zimbra
         def memberships(message, account)
           message.add 'account', account.id do |c|
             c.set_attr 'by', 'id'
+          end
+        end
+
+        def update_zimbra_attrs(message, id, account, attrs_names)
+          message.set_attr 'id', id
+          attrs_names.each do |attr_name|
+            A.inject(message, attr_name, account.zimbra_attrs[attr_name]) if account.zimbra_attrs[attr_name]
           end
         end
 
