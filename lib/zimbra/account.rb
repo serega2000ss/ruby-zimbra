@@ -6,6 +6,10 @@ module Zimbra
         AccountService.create(name, password, attributes)
       end
 
+      def delete(zimbra_id)
+        AccountService.delete(zimbra_id)
+      end
+
       def mailbox(account_id)
         AccountService.mailbox(account_id)
       end
@@ -121,6 +125,14 @@ module Zimbra
       Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
     end
 
+    def delete(zimbra_id)
+      xml = invoke('n2:DeleteAccountRequest') do |message|
+        Builder.delete(message, zimbra_id)
+      end
+      class_name = Zimbra::Account.class_name
+      Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
+    end
+
     def update_zimbra_attrs(id, account, attrs_names)
       xml = invoke("n2:ModifyAccountRequest") do |message|
         Builder.update_zimbra_attrs(message, id, account, attrs_names)
@@ -199,6 +211,10 @@ module Zimbra
           attributes.each do |k,v|
             A.inject(message, k, v)
           end
+        end
+
+        def delete(message, zimbra_id)
+          message.add 'id', zimbra_id
         end
 
         def create_archive(message, account, cos_id, archive_name)
