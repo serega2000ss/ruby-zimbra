@@ -129,8 +129,7 @@ module Zimbra
       xml = invoke('n2:DeleteAccountRequest') do |message|
         Builder.delete(message, zimbra_id)
       end
-      class_name = Zimbra::Account.class_name
-      Zimbra::BaseService::Parser.response(class_name, xml/"//n2:account")
+      xml.raw_xml.nil? ? true : false
     end
 
     def update_zimbra_attrs(id, account, attrs_names)
